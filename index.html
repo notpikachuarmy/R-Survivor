@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Survivor Prototype</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="gameWrapper">
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="mainMenu">
+      <h1>Survivor Prototype</h1>
+      <p>Récord: <span id="bestScoreText">0</span> puntos</p>
+      <p>Mejor tiempo: <span id="bestTimeText">00:00</span></p>
+
+      <button id="playButton">Jugar</button>
+      <button id="starterWeaponButton">Arma inicial</button>
+      <button id="skinsButton">Skins</button>
+      <button id="encyclopediaButton">Enciclopedia</button>
+      <button id="achievementsButton">Logros</button>
+    </div>
+
+    <div id="starterWeaponPanel" class="menu-panel hidden">
+      <button id="closeStarterWeaponButton" class="sticky-back-button">Volver</button>
+      <h2>Elige arma inicial</h2>
+      <p>Sólo aparecen las armas desbloqueadas. Escape también vuelve.</p>
+      <div id="starterWeaponContent"></div>
+    </div>
+
+    <div id="skinsPanel" class="menu-panel hidden">
+      <button id="closeSkinsButton" class="sticky-back-button">Volver</button>
+      <h2>Skins</h2>
+      <div id="skinsList"></div>
+    </div>
+
+    <div id="encyclopediaPanel" class="menu-panel hidden">
+      <button id="closeEncyclopediaButton" class="sticky-back-button">Volver</button>
+      <h2>Enciclopedia</h2>
+      <div id="encyclopediaContent"></div>
+    </div>
+
+    <div id="achievementsPanel" class="menu-panel hidden">
+      <button id="closeAchievementsButton" class="sticky-back-button">Volver</button>
+      <h2>Logros</h2>
+      <div id="achievementsContent"></div>
+    </div>
+
+    <div id="ui" class="hidden">
+      <div>⏱ Tiempo: <span id="timeText">00:00</span></div>
+      <div>💀 Kills: <span id="killsText">0</span></div>
+      <div>⭐ Puntos: <span id="scoreText">0</span></div>
+      <div>🧪 Nivel: <span id="levelText">1</span></div>
+      <div>XP: <span id="xpText">0</span>/<span id="xpNeedText">10</span></div>
+    </div>
+
+    <div id="levelUpPanel" class="hidden">
+      <h2>Subiste de nivel</h2>
+      <p>Elige una mejora</p>
+      <div id="upgradeOptions"></div>
+    </div>
+
+    <div id="blackChestPanel" class="hidden">
+  <h2>Cofre negro</h2>
+  <p>Elige una recompensa</p>
+  <div id="blackChestOptions"></div>
+  </div>
+    
+    <div id="pausePanel" class="hidden">
+      <h2>Pausa</h2>
+      <div id="pauseBuildContent"></div>
+      <div class="pause-actions">
+        <button id="resumeButton">Continuar</button>
+        <button id="giveUpButton">Morir</button>
+      </div>
+    </div>
+
+    <div id="devSavePanel" class="menu-panel hidden">
+      <button id="closeDevSaveButton" class="sticky-back-button">Volver</button>
+      <h2>Dev Save Editor</h2>
+      <p>F8 abre/cierra este panel. Úsalo para probar desbloqueos y stats.</p>
+      <div id="devSaveContent"></div>
+    </div>
+
+    <div id="eventMessage" class="hidden">
+    <h1 id="eventMessageText"></h1>
+</div>
+    
+    <div id="gameOver" class="hidden">
+      <h1>Has muerto</h1>
+      <p>Tiempo: <span id="finalTime">00:00</span></p>
+      <p>Kills: <span id="finalKills">0</span></p>
+      <p>Puntos: <span id="finalScore">0</span></p>
+      <button onclick="location.reload()">Volver al menú</button>
+    </div>
+  </div>
+
+  <script src="js/assets.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/achievements.js"></script>
+  <script src="js/skins.js"></script>
+  <script src="js/upgrades.js"></script>
+  <script src="js/leveling.js"></script>
+  <script src="js/items.js"></script>
+  <script src="js/enemyTypes.js"></script>
+  <script src="js/registry.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/combat.js"></script>
+  <script src="js/allies.js"></script>
+  <script src="js/projectiles.js"></script>
+  <script src="js/uiPause.js"></script>
+  <script src="js/movementVisuals.js"></script>
+  <script src="js/biomes.js"></script>
+  <script src="js/encyclopedia.js"></script>
+  <script src="js/achievementsMenu.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/weapons.js"></script>
+  <script src="js/rifts.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
