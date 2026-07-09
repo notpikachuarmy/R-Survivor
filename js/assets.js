@@ -22,6 +22,9 @@ const Assets = {
     delibird: new Image(),
     rhyhorn: new Image(),
     goldSlime: new Image(),
+    goldSlimeGiant: new Image(),
+    pinkSlime: new Image(),
+    pinkSlimeGiant: new Image(),
   },
 
   projectiles: {
@@ -149,6 +152,9 @@ Assets.enemies.flabebe.src = "assets/enemies/flabebe.png";
 Assets.enemies.delibird.src = "assets/enemies/delibird.png";
 Assets.enemies.rhyhorn.src = "assets/enemies/rhyhorn.png";
 Assets.enemies.goldSlime.src = "assets/enemies/goldSlime.png";
+Assets.enemies.goldSlimeGiant.src = "assets/enemies/goldSlimeGiant.png";
+Assets.enemies.pinkSlime.src = "assets/enemies/pinkSlime.png";
+Assets.enemies.pinkSlimeGiant.src = "assets/enemies/pinkSlimeGiant.png";
 
 Assets.projectiles.stone.src = "assets/projectiles/stone.png";
 Assets.projectiles.fireball.src = "assets/projectiles/fireball.png";

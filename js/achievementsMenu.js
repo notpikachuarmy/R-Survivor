@@ -53,6 +53,14 @@ function renderAchievements() {
             case "kill100GoldSlimes":
                  progress = `${saveData.stats.totalGoldSlimeKills} / 10`;
                  break;
+
+            case "kill25GoldSlimes":
+                 progress = `${saveData.stats.totalGoldSlimeKills} / 25`;
+                 break;
+
+            case "kill100PinkSlimes":
+                 progress = `${saveData.stats.totalPinkSlimeKills || 0} / 100`;
+                 break;
                 
             case "kill200Slimes":
                   progress = `${saveData.stats.totalSlimeKills} / 200`;

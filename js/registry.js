@@ -220,7 +220,8 @@ const BiomeRegistry = {
     },
     enemyPool: [
       { id: "slime", weight: 60, minTime: 0 },
-      { id: "goldSlime", weight: 1, minTime: 60 },
+      { id: "pinkSlime", weight: 12, minTime: 360 },
+      { id: "pinkSlimeGiant", weight: 3, minTime: 360, unlockKey: "pinkSlimeGiant" },
       { id: "fireSlimeSmall", weight: 10, minTime: 30, unlockKey: "fireSlimeSmall" },
       { id: "slimeGiant", weight: 7, minTime: 45, unlockKey: "slimeGiant" },
       { id: "fireSlimeGiant", weight: 2, minTime: 45, unlockKey: "fireSlimeGiant", unique: true },
@@ -287,6 +288,28 @@ function pickWeightedEntry(entries) {
     if (roll <= 0) return entry;
   }
   return entries[0];
+}
+
+const GlobalRareEnemyPool = [
+  { id: "goldSlime", weight: 10, minTime: 60 },
+  { id: "goldSlimeGiant", weight: 2, minTime: 60, unlockKey: "goldSlimeGiant" }
+];
+
+function getGlobalRareEnemyPool(time, save = saveData) {
+  return GlobalRareEnemyPool.filter(entry => {
+    if (time < (entry.minTime || 0)) return false;
+    if (entry.unlockKey && !save?.unlocks?.[entry.unlockKey]) return false;
+    if (typeof canSpawnEnemy === "function" && !canSpawnEnemy(entry.id)) return false;
+    return true;
+  });
+}
+
+function pickGlobalRareEnemyId(time, save = saveData) {
+  // Tirada muy baja e independiente del bioma.
+  // Así los slimes de oro pueden aparecer en planicie, desierto, bosque, etc.
+  if (Math.random() > 0.012) return null;
+  const entry = pickWeightedEntry(getGlobalRareEnemyPool(time, save));
+  return entry?.id || null;
 }
 
 function pickBiomeEnemyId(x, y, time, save = saveData) {

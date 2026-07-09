@@ -29,6 +29,9 @@ const DEFAULT_SAVE = {
     totalSenseisDefeated: 0,
     totalPrisonersRescued: 0,
     totalGoldSlimeKills: 0,
+    totalGoldSlimeGiantKills: 0,
+    totalPinkSlimeKills: 0,
+    totalPinkSlimeGiantKills: 0,
     totalChickensSummoned: 0,
   },
 
@@ -72,6 +75,8 @@ const DEFAULT_SAVE = {
     sockRock: false,
     skin4: false,
     goldPlort: false,
+    goldSlimeGiant: false,
+    pinkSlimeGiant: false,
     slimeJam: false,
     greenPlort: false,
     firePlort: false,

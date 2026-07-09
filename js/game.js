@@ -1493,6 +1493,15 @@ function summonRiftBoss(rift) {
 }
 
 function spawnRandomEnemy() {
+  const globalRareEnemy = typeof pickGlobalRareEnemyId === "function"
+    ? pickGlobalRareEnemyId(gameTime, saveData)
+    : null;
+
+  if (globalRareEnemy) {
+    spawnEnemy(globalRareEnemy);
+    return;
+  }
+
   const biomeEnemy = pickBiomeEnemyId(player.x, player.y, gameTime, saveData);
   spawnEnemy(biomeEnemy || "slime");
 }
@@ -1780,7 +1789,7 @@ function updateEnemies(dt) {
       continue;
       }
 
-    if (enemy.id === "goldSlime") {
+    if (enemy.id === "goldSlime" || enemy.id === "goldSlimeGiant") {
   updateGoldSlime(enemy, dt);
   continue;
 }
@@ -1916,11 +1925,17 @@ enemy.chargeTargetY = mainTarget.y;
         enemy.state = "jump";
       }
     } else if (enemy.state === "jump") {
-      moveWithObstacleCollision(
-        enemy,
-        enemy.jumpVx * dt,
-        enemy.jumpVy * dt
-      );
+      if (enemy.jumpsOverObstacles) {
+        enemy.x += enemy.jumpVx * dt;
+        enemy.y += enemy.jumpVy * dt;
+        enemy.visualMoving = true;
+      } else {
+        moveWithObstacleCollision(
+          enemy,
+          enemy.jumpVx * dt,
+          enemy.jumpVy * dt
+        );
+      }
 
       enemy.jumpTimer -= dt;
 
@@ -3082,11 +3097,17 @@ function updateAlly(enemy, dt) {
       enemy.state = "jump";
     }
   } else if (enemy.state === "jump") {
-    moveWithObstacleCollision(
-      enemy,
-      enemy.jumpVx * dt,
-      enemy.jumpVy * dt
-    );
+    if (enemy.jumpsOverObstacles) {
+      enemy.x += enemy.jumpVx * dt;
+      enemy.y += enemy.jumpVy * dt;
+      enemy.visualMoving = true;
+    } else {
+      moveWithObstacleCollision(
+        enemy,
+        enemy.jumpVx * dt,
+        enemy.jumpVy * dt
+      );
+    }
 
     if (distance(enemy, target) < enemy.collision + target.collision) {
       damageEnemy(
@@ -3128,6 +3149,25 @@ if (enemy.id === "slime") {
     ) {
     spawnItemDrop("goldPlort", enemy.x, enemy.y);
     }
+  }
+
+  if (enemy.id === "goldSlimeGiant") {
+  saveData.stats.totalGoldSlimeGiantKills++;
+
+    if (
+      saveData.unlocks.goldPlort &&
+      Math.random() < 0.10
+    ) {
+      spawnItemDrop("goldPlort", enemy.x, enemy.y);
+    }
+  }
+
+  if (enemy.id === "pinkSlime") {
+    saveData.stats.totalPinkSlimeKills++;
+  }
+
+  if (enemy.id === "pinkSlimeGiant") {
+    saveData.stats.totalPinkSlimeGiantKills++;
   }
 
   if (enemy.senseiId) {

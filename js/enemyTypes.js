@@ -300,7 +300,8 @@ watermelonElectrode: {
   isBoss: false,
   chestChance: 0,
 
-  dropsBag: true
+  dropsBag: true,
+  cannotCapture: true
 },
   rhyhorn: {
   id: "rhyhorn",
@@ -313,7 +314,7 @@ watermelonElectrode: {
   size: 80,
   collision: 32,
 
-  life: 90,
+  life: 150,
   speed: 60,
 
   xpValue: 45,
@@ -594,6 +595,85 @@ senseiTalent: {
   chestChance: 0,
   cannotCapture: true,
 },
+  goldSlimeGiant: {
+  id: "goldSlimeGiant",
+  name: "Slime de Oro Gigante",
+  type: "rare",
+  tags: ["slime", "gold", "rare", "gigante"],
+
+  sprite: () => Assets.enemies.goldSlimeGiant,
+
+  size: 96,
+  collision: 38,
+
+  life: 40,
+  speed: 90,
+
+  xpValue: 750,
+  scoreValue: 1500,
+
+  attacks: [],
+
+  isBoss: false,
+  chestChance: 0,
+  cannotCapture: true,
+},
+  pinkSlime: {
+  id: "pinkSlime",
+  name: "Slime Rosa",
+  type: "normal",
+  tags: ["slime", "pink"],
+
+  sprite: () => Assets.enemies.pinkSlime,
+
+  size: 56,
+  collision: 20,
+
+  life: 28,
+  speed: 95,
+
+  xpValue: 12,
+  scoreValue: 50,
+
+  attacks: ["charge"],
+  chargeRange: 330,
+  chargeTime: 0.9,
+  jumpSpeed: 760,
+  jumpDuration: 0.36,
+  attackCooldown: 1.7,
+  jumpsOverObstacles: true,
+
+  isBoss: false,
+  chestChance: 0
+},
+  pinkSlimeGiant: {
+  id: "pinkSlimeGiant",
+  name: "Slime Rosa Gigante",
+  type: "normal",
+  tags: ["slime", "pink", "gigante"],
+
+  sprite: () => Assets.enemies.pinkSlimeGiant,
+
+  size: 96,
+  collision: 38,
+
+  life: 110,
+  speed: 75,
+
+  xpValue: 55,
+  scoreValue: 220,
+
+  attacks: ["charge"],
+  chargeRange: 420,
+  chargeTime: 1.05,
+  jumpSpeed: 900,
+  jumpDuration: 0.48,
+  attackCooldown: 2.1,
+  jumpsOverObstacles: true,
+
+  isBoss: false,
+  chestChance: 0
+},
 };
 
 function createEnemy(typeId, x, y) {
@@ -688,6 +768,7 @@ function createEnemy(typeId, x, y) {
     isBoss: data.isBoss,
     chestChance: data.chestChance,
     cannotCapture: data.cannotCapture || false,
+    jumpsOverObstacles: data.jumpsOverObstacles || false,
     senseiId: data.senseiId || null,
 
     dropsBag: data.dropsBag || false,
@@ -734,6 +815,15 @@ if (typeId === "watermelonElectrode") {
 if (typeId === "flabebe") {
   return saveData.unlocks.flabebe === true;
 }
+
+if (typeId === "goldSlimeGiant") {
+  return saveData.unlocks.goldSlimeGiant === true;
+}
+
+if (typeId === "pinkSlimeGiant") {
+  return saveData.unlocks.pinkSlimeGiant === true;
+}
+
   if (typeId === "rhyhorn") {
   return saveData.unlocks.rhyhorn === true;
 }

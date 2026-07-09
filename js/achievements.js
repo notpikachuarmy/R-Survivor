@@ -383,6 +383,37 @@ kill500Slimes: {
     unlockEncyclopedia("weapons", "rooster");
   }
 },
+  kill25GoldSlimes: {
+  id: "kill25GoldSlimes",
+  name: "Brillo enorme",
+  description: "Derrota a 25 Slimes de Oro.",
+  reward: "Desbloquea el Slime de Oro Gigante.",
+
+  check() {
+    return saveData.stats.totalGoldSlimeKills >= 25;
+  },
+
+  unlock() {
+    saveData.unlocks.goldSlimeGiant = true;
+    unlockEncyclopedia("enemies", "goldSlimeGiant");
+  }
+},
+  kill100PinkSlimes: {
+  id: "kill100PinkSlimes",
+  name: "Salto rosado",
+  description: "Derrota a 100 Slimes Rosas.",
+  reward: "Desbloquea el Slime Rosa Gigante.",
+
+  check() {
+    return saveData.stats.totalPinkSlimeKills >= 100;
+  },
+
+  unlock() {
+    saveData.unlocks.pinkSlimeGiant = true;
+    unlockEncyclopedia("enemies", "pinkSlimeGiant");
+  }
+},
+
 };
 
 function checkAchievements() {

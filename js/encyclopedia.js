@@ -412,6 +412,45 @@ greenPlort: {
     "Se mueve dando vueltas por el mapa.",
   ]
 },
+    goldSlimeGiant: {
+  id: "goldSlimeGiant",
+  name: "Slime de Oro Gigante",
+  category: "Enemigo",
+  sprite: () => Assets.enemies.goldSlimeGiant,
+  description: "Versión gigante del Slime de Oro. Da todavía más experiencia y puede dejar Plort de Oro.",
+  details: [
+    "40 PS",
+    "750 XP",
+    "10% de dejar Plort de Oro.",
+    "No es capturable.",
+  ]
+},
+    pinkSlime: {
+  id: "pinkSlime",
+  name: "Slime Rosa",
+  category: "Enemigo",
+  sprite: () => Assets.enemies.pinkSlime,
+  description: "Slime saltarín que carga el salto y cae encima del jugador. Puede saltar obstáculos.",
+  details: [
+    "28 PS",
+    "12 XP",
+    "Aparece desde el minuto 6 en Planicie.",
+    "Puede ser capturado y conserva su ataque de salto.",
+  ]
+},
+    pinkSlimeGiant: {
+  id: "pinkSlimeGiant",
+  name: "Slime Rosa Gigante",
+  category: "Enemigo",
+  sprite: () => Assets.enemies.pinkSlimeGiant,
+  description: "Versión gigante del Slime Rosa, con saltos más largos, más vida y más experiencia.",
+  details: [
+    "110 PS",
+    "55 XP",
+    "Aparece desde el minuto 6 tras desbloquearlo.",
+    "No cuenta como boss para el Botiquín de Miedo.",
+  ]
+},
     mimic: {
   id: "mimic",
   name: "Mímico",
