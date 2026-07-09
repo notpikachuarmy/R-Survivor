@@ -33,6 +33,7 @@ const WeaponRegistry = {
     name: "PatataBoom",
     description: "Empiezas colocando minas explosivas.",
     category: "Arma",
+    pauseGroup: "items",
     sprite: () => Assets.items.patataBoom,
     unlockKey: "patataBoom",
     canStart: true,
@@ -54,6 +55,7 @@ const WeaponRegistry = {
     name: "Torreta de sandía",
     description: "Empiezas con una torreta temporal que dispara semillas.",
     category: "Arma",
+    pauseGroup: "items",
     sprite: () => Assets.items.watermelonSeedTurret,
     unlockKey: "turret",
     canStart: true,
@@ -144,6 +146,7 @@ const WeaponRegistry = {
     name: "Gallo de Pelea",
     description: "Empiezas con gallos aliados que picotean enemigos.",
     category: "Arma",
+    pauseGroup: "items",
     sprite: () => Assets.items.rooster,
     unlockKey: "rooster",
     canStart: true,
@@ -291,8 +294,8 @@ function pickWeightedEntry(entries) {
 }
 
 const GlobalRareEnemyPool = [
-  { id: "goldSlime", weight: 10, minTime: 60 },
-  { id: "goldSlimeGiant", weight: 2, minTime: 60, unlockKey: "goldSlimeGiant" }
+  { id: "goldSlime", weight: 30, minTime: 60 },
+  { id: "goldSlimeGiant", weight: 1, minTime: 60, unlockKey: "goldSlimeGiant" }
 ];
 
 function getGlobalRareEnemyPool(time, save = saveData) {
@@ -307,7 +310,7 @@ function getGlobalRareEnemyPool(time, save = saveData) {
 function pickGlobalRareEnemyId(time, save = saveData) {
   // Tirada muy baja e independiente del bioma.
   // Así los slimes de oro pueden aparecer en planicie, desierto, bosque, etc.
-  if (Math.random() > 0.012) return null;
+  if (Math.random() > 0.0025) return null;
   const entry = pickWeightedEntry(getGlobalRareEnemyPool(time, save));
   return entry?.id || null;
 }

@@ -1048,36 +1048,91 @@ function buildStatList(rows) {
     : "<p>Sin stats visibles</p>";
 }
 
+
+function getRegistryDefinitionForPause(id) {
+  if (typeof getWeaponDefinition === "function") {
+    return getWeaponDefinition(id);
+  }
+  return null;
+}
+
+function getPauseSpriteSrc(id, fallbackType = "weapon") {
+  const registry = getRegistryDefinitionForPause(id);
+  const sprite = registry?.sprite?.();
+  if (sprite?.src) return sprite.src;
+
+  if (Assets?.items?.[id]?.src) return Assets.items[id].src;
+  if (Assets?.projectiles?.[id]?.src) return Assets.projectiles[id].src;
+
+  return fallbackType === "item" && Assets?.items?.chest?.src
+    ? Assets.items.chest.src
+    : "";
+}
+
+function buildPauseIconCard(entry) {
+  const details = entry.rows?.length ? buildStatList(entry.rows) : "<p>Sin stats visibles</p>";
+  const upgradeCount = entry.upgradeCount !== undefined
+    ? `<p class="build-upgrade-count">Mejoras elegidas: ${entry.upgradeCount}</p>`
+    : "";
+
+  return `
+    <article class="build-icon-card" tabindex="0">
+      ${entry.sprite ? `<img src="${entry.sprite}" alt="${entry.name}">` : ""}
+      <h4>${entry.name}</h4>
+      <div class="build-icon-details">
+        <h3>${entry.name}</h3>
+        ${details}
+        ${upgradeCount}
+      </div>
+    </article>
+  `;
+}
 function renderPauseBuildPanel() {
   if (!pauseBuildContent) return;
 
-  const weapons = Object.entries(player.weapons || {});
-  const items = [
-    [player.scaryMedkitActive, "Botiquín Scary", [["Efecto", "Jefes pueden soltar botiquines"]]],
-    [player.evioliteActive, "Mineral evolutivo", [["Efecto", "Reduce daño recibido"]]],
-    [player.runningShoesActive, "Deportivas", [["Velocidad", Math.round(player.speed)] ]],
-    [player.drillActive, "Taladro", [["Efecto", "Atraviesas rocas"]]],
-    [player.leaderBadgeActive, "Distintivo de líder", [["Aliados/torretas", "+15% daño"]]],
-    [player.soapActive, "Jabón", [["Efecto", "Puede esquivar daño"]]],
-    [player.slimeJamActive, "Mermelada Slime", [["Contra slimes", "+3 daño"]]],
-    [player.greenPlortActive, "Plort Verde", [["XP slime", "Aumentada"]]],
-    [player.firePlortActive, "Plort de Fuego", [["Quemadura", `${Math.round(player.burnChance * 100)}%`], ["Daño", player.burnDamage], ["Duración", player.burnDuration]]]
+  const weaponEntries = [];
+  const itemEntries = [];
+
+  for (const [id, weapon] of Object.entries(player.weapons || {})) {
+    const definition = getRegistryDefinitionForPause(id);
+    const entry = {
+      id,
+      name: getWeaponDisplayName(id),
+      sprite: getPauseSpriteSrc(id),
+      rows: getWeaponStatRows(id, weapon),
+      upgradeCount: (player.weaponUpgradeCounts || {})[id] || 0
+    };
+
+    if (definition?.pauseGroup === "items") {
+      itemEntries.push(entry);
+    } else {
+      weaponEntries.push(entry);
+    }
+  }
+
+  const runItems = [
+    [player.scaryMedkitActive, "Botiquín Scary", "scaryMedkit", [["Efecto", "Jefes pueden soltar botiquines"]]],
+    [player.evioliteActive, "Mineral evolutivo", "eviolite", [["Efecto", "Reduce daño recibido"]]],
+    [player.runningShoesActive, "Deportivas", "runningShoes", [["Velocidad", Math.round(player.speed)] ]],
+    [player.drillActive, "Taladro", "drill", [["Efecto", "Atraviesas rocas"]]],
+    [player.leaderBadgeActive, "Distintivo de líder", "leaderBadge", [["Aliados/torretas", "+15% daño"]]],
+    [player.soapActive, "Jabón", "soap", [["Efecto", "Puede esquivar daño"]]],
+    [player.slimeJamActive, "Mermelada Slime", "slimeJam", [["Contra slimes", "+3 daño"]]],
+    [player.greenPlortActive, "Plort Verde", "greenPlort", [["XP slime", "Aumentada"]]],
+    [player.firePlortActive, "Plort de Fuego", "firePlort", [["Quemadura", `${Math.round(player.burnChance * 100)}%`], ["Daño", player.burnDamage], ["Duración", player.burnDuration]]]
   ].filter(item => item[0]);
 
-  const weaponCards = weapons.map(([id, weapon]) => `
-    <article class="build-detail-card">
-      <h3>${getWeaponDisplayName(id)}</h3>
-      ${buildStatList(getWeaponStatRows(id, weapon))}
-      <p class="build-upgrade-count">Mejoras elegidas: ${(player.weaponUpgradeCounts || {})[id] || 0}</p>
-    </article>
-  `).join("") || "<p>Sin armas</p>";
+  for (const [, name, id, rows] of runItems) {
+    itemEntries.push({
+      id,
+      name,
+      sprite: getPauseSpriteSrc(id, "item"),
+      rows
+    });
+  }
 
-  const itemCards = items.map(([, name, rows]) => `
-    <article class="build-detail-card item-card">
-      <h3>${name}</h3>
-      ${buildStatList(rows)}
-    </article>
-  `).join("") || "<p>Sin items de run</p>";
+  const weaponCards = weaponEntries.map(buildPauseIconCard).join("") || "<p>Sin armas</p>";
+  const itemCards = itemEntries.map(buildPauseIconCard).join("") || "<p>Sin items de run</p>";
 
   pauseBuildContent.innerHTML = `
     <section class="pause-build-section player-summary">
@@ -1088,11 +1143,11 @@ function renderPauseBuildPanel() {
     </section>
     <section class="pause-build-section wide">
       <h3>Armas</h3>
-      <div class="build-card-grid">${weaponCards}</div>
+      <div class="build-icon-grid">${weaponCards}</div>
     </section>
     <section class="pause-build-section wide">
       <h3>Items</h3>
-      <div class="build-card-grid">${itemCards}</div>
+      <div class="build-icon-grid">${itemCards}</div>
     </section>
   `;
 }
@@ -4286,6 +4341,24 @@ function summonMissingRoosters() {
   enforceRoosterLimit();
 }
 
+function findFreePositionNearPlayer(collision = 14, minDistance = 70, maxDistance = 160, attempts = 30) {
+  for (let i = 0; i < attempts; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const distanceFromPlayer = minDistance + Math.random() * Math.max(1, maxDistance - minDistance);
+    const candidate = {
+      x: player.x + Math.cos(angle) * distanceFromPlayer,
+      y: player.y + Math.sin(angle) * distanceFromPlayer,
+      collision
+    };
+
+    if (!isCollidingWithObstacle(candidate)) {
+      return candidate;
+    }
+  }
+
+  return { x: player.x + 48, y: player.y + 48, collision };
+}
+
 function summonRooster() {
   if (!player.roosterActive) return null;
 
@@ -4301,19 +4374,19 @@ function summonRooster() {
   const sizeMultiplier = isGiant ? 2.2 : 1;
   const leaderMultiplier = player.leaderBadgeActive ? 1.15 : 1;
 
-  const angle = Math.random() * Math.PI * 2;
-  const distanceFromPlayer = 70 + Math.random() * 90;
+  const spawnCollision = 14 * sizeMultiplier;
+  const spawnPos = findFreePositionNearPlayer(spawnCollision, 70, 160);
 
   roosters.push({
     id: "rooster",
 
-    x: player.x + Math.cos(angle) * distanceFromPlayer,
-    y: player.y + Math.sin(angle) * distanceFromPlayer,
+    x: spawnPos.x,
+    y: spawnPos.y,
 
     width: 32 * sizeMultiplier,
     height: 32 * sizeMultiplier,
     size: 32 * sizeMultiplier,
-    collision: 14 * sizeMultiplier,
+    collision: spawnCollision,
 
     life: Math.ceil(player.roosterLife * sizeMultiplier * leaderMultiplier),
     maxLife: Math.ceil(player.roosterLife * sizeMultiplier * leaderMultiplier),
@@ -4350,11 +4423,10 @@ function updateRoosters(dt) {
         rooster.dead = false;
         rooster.life = rooster.maxLife;
 
-        const angle = Math.random() * Math.PI * 2;
-        const distanceFromPlayer = 70 + Math.random() * 90;
+        const spawnPos = findFreePositionNearPlayer(rooster.collision, 70, 160);
 
-        rooster.x = player.x + Math.cos(angle) * distanceFromPlayer;
-        rooster.y = player.y + Math.sin(angle) * distanceFromPlayer;
+        rooster.x = spawnPos.x;
+        rooster.y = spawnPos.y;
       }
 
       continue;
@@ -4367,7 +4439,19 @@ function updateRoosters(dt) {
 }
 
 function updateRoosterAI(rooster, dt) {
-  const target = getNearestEnemyForRooster(rooster);
+  const distFromPlayer = distance(rooster, player);
+
+  if (distFromPlayer > 950) {
+    rooster.life -= rooster.maxLife * 0.35 * dt;
+
+    if (rooster.life <= 0) {
+      rooster.dead = true;
+      rooster.respawnTimer = player.roosterRespawnCooldown;
+      return;
+    }
+  }
+
+  const target = distFromPlayer > 760 ? null : getNearestEnemyForRooster(rooster);
 
   if (!target) {
     moveRoosterNearPlayer(rooster, dt);
@@ -4423,7 +4507,10 @@ function getNearestEnemyForRooster(rooster) {
     if (enemy.dead) continue;
     if (enemy.isAlly) continue;
 
+    if (distance(player, enemy) > 760) continue;
+
     const d = distance(rooster, enemy);
+    if (d > 620) continue;
 
     if (d < nearestDist) {
       nearest = enemy;
@@ -4439,7 +4526,7 @@ function moveRoosterNearPlayer(rooster, dt) {
   const dy = player.y - rooster.y;
   const dist = Math.hypot(dx, dy) || 1;
 
-  if (dist > 160) {
+  if (dist > 220) {
     moveWithObstacleCollision(
       rooster,
       (dx / dist) * rooster.speed * dt,
@@ -4451,6 +4538,8 @@ function moveRoosterNearPlayer(rooster, dt) {
 }
 
 function explodePatataBoomMine(mine) {
+  if (!mine || mine.dead) return;
+
   mine.dead = true;
 
   explosions.push({
@@ -4467,11 +4556,22 @@ function explodePatataBoomMine(mine) {
 
     if (distance(mine, enemy) < mine.radius + enemy.collision) {
       damageEnemy(
-    enemy,
-    mine.damage,
-    "patataBoom",
-    ["plant", "explosive"]
-);
+        enemy,
+        mine.damage,
+        "patataBoom",
+        ["plant", "explosive"]
+      );
+    }
+  }
+
+  if (mine.chain) {
+    const linkedMines = patataBoomMines.filter(other => {
+      if (other === mine || other.dead) return false;
+      return distance(mine, other) < mine.radius + other.collision;
+    });
+
+    for (const linkedMine of linkedMines) {
+      explodePatataBoomMine(linkedMine);
     }
   }
 }

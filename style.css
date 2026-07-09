@@ -583,3 +583,67 @@ body {
   border-radius: 5px;
   padding: 4px;
 }
+
+.build-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.build-icon-card {
+  position: relative;
+  background: #151515;
+  border: 2px solid #666;
+  border-radius: 10px;
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  min-height: 96px;
+}
+
+.build-icon-card:hover,
+.build-icon-card:focus {
+  border-color: white;
+  outline: none;
+}
+
+.build-icon-card img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.build-icon-card h4 {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+.build-icon-details {
+  display: none;
+  position: fixed;
+  z-index: 70;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(420px, calc(100vw - 48px));
+  max-height: min(70vh, 620px);
+  overflow-y: auto;
+  background: #111;
+  border: 2px solid white;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.65);
+}
+
+.build-icon-card:focus .build-icon-details,
+.build-icon-card:active .build-icon-details {
+  display: block;
+}
+
+.build-icon-details h3 {
+  margin-top: 0;
+}

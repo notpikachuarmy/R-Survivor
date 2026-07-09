@@ -107,6 +107,7 @@ const UPGRADE_POOL = [
     itemName: "PatataBoom",
     name: "Explosión en cadena",
     description: "Las minas pueden activar otras minas cercanas.",
+    unique: true,
     apply() {
       player.weapons.patataBoom.chain = true;
     }

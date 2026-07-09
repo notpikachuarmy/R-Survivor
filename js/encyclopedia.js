@@ -242,6 +242,7 @@ leaderBadge: {
   description: "Otorga 1000 de experiencia al recogerlo.",
   details: [
     "Tiene un 1% de probabilidad de caer al derrotar un Slime de Oro.",
+    "Tiene un 10% de probabilidad de caer al derrotar un Slime de Oro Gigante.",
   ]
 },
     slimeJam: {
@@ -410,6 +411,7 @@ greenPlort: {
     "250 XP",
     "No ataca.",
     "Se mueve dando vueltas por el mapa.",
+    "No es capturable.",
   ]
 },
     goldSlimeGiant: {
@@ -417,11 +419,12 @@ greenPlort: {
   name: "Slime de Oro Gigante",
   category: "Enemigo",
   sprite: () => Assets.enemies.goldSlimeGiant,
-  description: "Versión gigante del Slime de Oro. Da todavía más experiencia y puede dejar Plort de Oro.",
+  description: "Versión gigante del Slime de Oro.",
   details: [
     "40 PS",
     "750 XP",
-    "10% de dejar Plort de Oro.",
+    "No ataca.",
+    "Se mueve dando vueltas por el mapa.",
     "No es capturable.",
   ]
 },
@@ -434,8 +437,7 @@ greenPlort: {
   details: [
     "28 PS",
     "12 XP",
-    "Aparece desde el minuto 6 en Planicie.",
-    "Puede ser capturado y conserva su ataque de salto.",
+    "Ataque: Salto",
   ]
 },
     pinkSlimeGiant: {
@@ -447,8 +449,7 @@ greenPlort: {
   details: [
     "110 PS",
     "55 XP",
-    "Aparece desde el minuto 6 tras desbloquearlo.",
-    "No cuenta como boss para el Botiquín de Miedo.",
+    "Ataque: Salto",
   ]
 },
     mimic: {
