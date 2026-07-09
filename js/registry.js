@@ -33,7 +33,6 @@ const WeaponRegistry = {
     name: "PatataBoom",
     description: "Empiezas colocando minas explosivas.",
     category: "Arma",
-    pauseGroup: "items",
     sprite: () => Assets.items.patataBoom,
     unlockKey: "patataBoom",
     canStart: true,
@@ -55,7 +54,6 @@ const WeaponRegistry = {
     name: "Torreta de sandía",
     description: "Empiezas con una torreta temporal que dispara semillas.",
     category: "Arma",
-    pauseGroup: "items",
     sprite: () => Assets.items.watermelonSeedTurret,
     unlockKey: "turret",
     canStart: true,
@@ -146,7 +144,6 @@ const WeaponRegistry = {
     name: "Gallo de Pelea",
     description: "Empiezas con gallos aliados que picotean enemigos.",
     category: "Arma",
-    pauseGroup: "items",
     sprite: () => Assets.items.rooster,
     unlockKey: "rooster",
     canStart: true,
@@ -192,6 +189,7 @@ function applyWeaponDefinition(id) {
 
   if (weapon.initialStats) {
     player.weapons[id] = cloneRegistryValue(weapon.initialStats);
+    if (typeof ensureRunWeaponStats === "function") ensureRunWeaponStats(id);
   }
 
   const applyFn = weapon.applyFn && window[weapon.applyFn];

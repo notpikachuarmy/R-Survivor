@@ -647,3 +647,61 @@ body {
 .build-icon-details h3 {
   margin-top: 0;
 }
+
+.build-count {
+  font-size: 16px;
+  opacity: 0.85;
+  margin-left: 8px;
+}
+
+.build-icon-details ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0;
+}
+
+.build-icon-details li {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.14);
+  padding: 3px 0;
+}
+
+.build-icon-details li span {
+  opacity: 0.9;
+}
+
+.build-icon-details li strong {
+  text-align: right;
+  margin-left: auto;
+}
+
+#gameOver {
+  justify-content: flex-start;
+  overflow-y: auto;
+  padding: 28px 18px;
+  box-sizing: border-box;
+}
+
+#gameOverBuildContent {
+  width: min(1120px, 94vw);
+  margin-top: 14px;
+}
+
+.death-build-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.death-build-header h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.death-build-header button {
+  margin-top: 0 !important;
+}

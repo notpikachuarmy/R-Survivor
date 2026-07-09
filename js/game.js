@@ -47,6 +47,7 @@ const xpText = document.getElementById("xpText");
 const xpNeedText = document.getElementById("xpNeedText");
 
 const gameOverPanel = document.getElementById("gameOver");
+const gameOverBuildContent = document.getElementById("gameOverBuildContent");
 const finalTime = document.getElementById("finalTime");
 const finalKills = document.getElementById("finalKills");
 const finalScore = document.getElementById("finalScore");
@@ -146,6 +147,7 @@ const player = {
   uniqueUpgrades: {},
 
   weaponUpgradeCounts: {},
+  runWeaponStats: {},
   weapons: {}
 };
 
@@ -901,6 +903,7 @@ function resetPlayerForNewRun() {
   player.uniqueUpgrades = {};
   
   player.weaponUpgradeCounts = {};
+  player.runWeaponStats = {};
 
   player.weapons = {};
   applyWeaponDefinition("stone");
@@ -978,6 +981,60 @@ function formatStatValue(value) {
   return value;
 }
 
+
+function normalizeDamageSourceToBuildId(source) {
+  const map = {
+    watermelonSeed: "watermelonSeedTurret",
+    allyFireball: "pokeball",
+    allyKnife: "pokeball",
+    burn: "firePlort"
+  };
+  return map[source] || source || "unknown";
+}
+
+function ensureRunWeaponStats(id) {
+  if (!id) return null;
+  if (!player.runWeaponStats) player.runWeaponStats = {};
+  if (!player.runWeaponStats[id]) {
+    player.runWeaponStats[id] = {
+      damage: 0,
+      kills: 0,
+      acquiredAt: Math.max(0, gameTime || 0)
+    };
+  }
+  return player.runWeaponStats[id];
+}
+
+function recordBuildDamage(source, amount, killed = false) {
+  const id = normalizeDamageSourceToBuildId(source);
+  const stats = ensureRunWeaponStats(id);
+  if (!stats) return;
+  stats.damage += Math.max(0, amount || 0);
+  if (killed) stats.kills += 1;
+}
+
+function getPauseGroupForId(id) {
+  if (typeof EncyclopediaDatabase !== "undefined") {
+    if (EncyclopediaDatabase.weapons?.[id]) return "weapons";
+    if (EncyclopediaDatabase.items?.[id]) return "items";
+  }
+  const definition = getRegistryDefinitionForPause(id);
+  if (definition?.category === "Arma") return "weapons";
+  return definition?.pauseGroup === "items" ? "items" : "weapons";
+}
+
+function countUnlockedEncyclopediaEntries(type) {
+  if (typeof EncyclopediaDatabase === "undefined") return 0;
+  const db = EncyclopediaDatabase[type] || {};
+  const known = saveData?.encyclopedia?.[type] || {};
+  return Object.keys(db).filter(id => known[id]).length;
+}
+
+function countTotalEncyclopediaEntries(type) {
+  if (typeof EncyclopediaDatabase === "undefined") return 0;
+  return Object.keys(EncyclopediaDatabase[type] || {}).length;
+}
+
 function getWeaponStatRows(id, weapon) {
   const commonLabels = {
     damage: "Daño",
@@ -1037,6 +1094,13 @@ function getWeaponStatRows(id, weapon) {
     if (["number", "boolean", "string"].includes(typeof value)) {
       rows.push([key, formatStatValue(value)]);
     }
+  }
+
+  const runStats = player.runWeaponStats?.[id];
+  if (runStats) {
+    rows.push(["Daño total", Math.round(runStats.damage)]);
+    rows.push(["Kills", runStats.kills || 0]);
+    rows.push(["Conseguida", formatTime(runStats.acquiredAt || 0)]);
   }
 
   return rows;
@@ -1103,7 +1167,9 @@ function renderPauseBuildPanel() {
       upgradeCount: (player.weaponUpgradeCounts || {})[id] || 0
     };
 
-    if (definition?.pauseGroup === "items") {
+    ensureRunWeaponStats(id);
+    entry.rows = getWeaponStatRows(id, weapon);
+    if (getPauseGroupForId(id) === "items") {
       itemEntries.push(entry);
     } else {
       weaponEntries.push(entry);
@@ -1123,6 +1189,7 @@ function renderPauseBuildPanel() {
   ].filter(item => item[0]);
 
   for (const [, name, id, rows] of runItems) {
+    if (itemEntries.some(entry => entry.id === id) || weaponEntries.some(entry => entry.id === id)) continue;
     itemEntries.push({
       id,
       name,
@@ -1142,11 +1209,11 @@ function renderPauseBuildPanel() {
       <p>Velocidad: ${Math.round(player.speed)}</p>
     </section>
     <section class="pause-build-section wide">
-      <h3>Armas</h3>
+      <h3>Armas <span class="build-count">${weaponEntries.length}/${countUnlockedEncyclopediaEntries("weapons") || countTotalEncyclopediaEntries("weapons")}</span></h3>
       <div class="build-icon-grid">${weaponCards}</div>
     </section>
     <section class="pause-build-section wide">
-      <h3>Items</h3>
+      <h3>Items <span class="build-count">${itemEntries.length}/${countUnlockedEncyclopediaEntries("items") || countTotalEncyclopediaEntries("items")}</span></h3>
       <div class="build-icon-grid">${itemCards}</div>
     </section>
   `;
@@ -2782,6 +2849,7 @@ function updateBurnOnTarget(target, dt) {
       damagePlayer(burn.damage);
     } else {
       target.life -= burn.damage;
+      recordBuildDamage("burn", burn.damage, false);
 
       if (target.life <= 0 && !target.dead) {
         if (tryCaptureEnemy(target)) {
@@ -2789,6 +2857,7 @@ function updateBurnOnTarget(target, dt) {
           return;
         }
 
+        recordBuildDamage("burn", 0, true);
         target.dead = true;
         kills++;
         score += target.scoreValue;
@@ -2848,6 +2917,7 @@ function damageEnemy(enemy, amount, source = null, sourceTags = []) {
   const finalDamage = calculatePlayerDamage(amount, sourceTags, enemy);
 
   enemy.life -= finalDamage;
+  recordBuildDamage(source, finalDamage, false);
 
   if (
   player.firePlortActive &&
@@ -2871,6 +2941,7 @@ function damageEnemy(enemy, amount, source = null, sourceTags = []) {
       return;
     }
 
+    recordBuildDamage(source, 0, true);
     enemy.dead = true;
     kills++;
     score += enemy.scoreValue;
@@ -3544,6 +3615,7 @@ const BLACK_CHEST_WEAPONS = [
   apply() {
     player.pokeballActive = true;
     player.maxAllies = Math.max(player.maxAllies, 1);
+    ensureRunWeaponStats("pokeball");
     player.weapons.pokeball = {
     tags: ["capture", "summon"]
   };
@@ -3705,6 +3777,7 @@ const BLACK_CHEST_WEAPONS = [
     player.burnDuration = Math.max(player.burnDuration, 5);
     player.burnTickRate = Math.min(player.burnTickRate, 1);
 
+    ensureRunWeaponStats("firePlort");
     player.weapons.firePlort = {
       tags: ["fire", "burn", "item"]
     };
@@ -3872,16 +3945,19 @@ function getBlackChestRewards(amount = 3) {
 }
 
 function addPatataBoomWeapon() {
+  ensureRunWeaponStats("patataBoom");
   player.weapons.patataBoom = cloneRegistryValue(WeaponRegistry.patataBoom.initialStats);
   unlockEncyclopedia("weapons", "patataBoom");
 }
 
 function addWatermelonSeedTurretWeapon() {
+  ensureRunWeaponStats("watermelonSeedTurret");
   player.weapons.watermelonSeedTurret = cloneRegistryValue(WeaponRegistry.watermelonSeedTurret.initialStats);
   unlockEncyclopedia("weapons", "watermelonSeedTurret");
 }
 
 function addCursorWeapon() {
+  ensureRunWeaponStats("cursor");
   player.weapons.cursor = cloneRegistryValue(WeaponRegistry.cursor.initialStats);
   createMissingMouseCursors();
   unlockEncyclopedia("weapons", "cursor");
@@ -4049,6 +4125,7 @@ function clickEnemyWithCursor(cursor, enemy) {
 }
 
 function addSockRockWeapon() {
+  ensureRunWeaponStats("sockRock");
   player.weapons.sockRock = cloneRegistryValue(WeaponRegistry.sockRock.initialStats);
   unlockEncyclopedia("weapons", "sockRock");
 }
@@ -4107,6 +4184,7 @@ function updateSockSwings(dt) {
 }
 
 function addChikoritaLeafWeapon() {
+  ensureRunWeaponStats("chikoritaLeaf");
   player.weapons.chikoritaLeaf = cloneRegistryValue(WeaponRegistry.chikoritaLeaf.initialStats);
   unlockEncyclopedia("weapons", "chikoritaLeaf");
 }
@@ -4170,6 +4248,7 @@ function addChickenItem() {
   player.chickenActive = true;
   player.chickenMax = Math.max(player.chickenMax, 1);
 
+  ensureRunWeaponStats("chicken");
   player.weapons.chicken = {
     tags: ["ally", "chicken", "summon"]
   };
@@ -4294,6 +4373,7 @@ function addRoosterWeapon() {
   player.roosterActive = true;
   player.roosterMax = Math.max(player.roosterMax, 1);
 
+  ensureRunWeaponStats("rooster");
   player.weapons.rooster = cloneRegistryValue(WeaponRegistry.rooster.initialStats);
 
   summonMissingRoosters();
@@ -4500,8 +4580,14 @@ function updateRoosterAI(rooster, dt) {
 }
 
 function getNearestEnemyForRooster(rooster) {
-  let nearest = null;
-  let nearestDist = Infinity;
+  let best = null;
+  let bestScore = Infinity;
+
+  const assignedCounts = new Map();
+  for (const other of roosters) {
+    if (other === rooster || other.dead || !other.target || other.target.dead) continue;
+    assignedCounts.set(other.target, (assignedCounts.get(other.target) || 0) + 1);
+  }
 
   for (const enemy of enemies) {
     if (enemy.dead) continue;
@@ -4512,13 +4598,16 @@ function getNearestEnemyForRooster(rooster) {
     const d = distance(rooster, enemy);
     if (d > 620) continue;
 
-    if (d < nearestDist) {
-      nearest = enemy;
-      nearestDist = d;
+    const crowdPenalty = (assignedCounts.get(enemy) || 0) * 260;
+    const score = d + crowdPenalty;
+
+    if (score < bestScore) {
+      best = enemy;
+      bestScore = score;
     }
   }
 
-  return nearest;
+  return best;
 }
 
 function moveRoosterNearPlayer(rooster, dt) {
@@ -5534,6 +5623,64 @@ function drawMinimapEntities(list, centerX, centerY, mapRadius, range, color) {
   }
 }
 
+
+function renderGameOverBuildPanel() {
+  if (!gameOverBuildContent) return;
+  renderPauseBuildPanel();
+  const source = pauseBuildContent ? pauseBuildContent.innerHTML : "";
+  gameOverBuildContent.innerHTML = `
+    <div class="death-build-header">
+      <h2>Resumen de la run</h2>
+      <button id="exportDeathSummaryButton" type="button">Exportar captura</button>
+    </div>
+    ${source}
+  `;
+  document.getElementById("exportDeathSummaryButton")?.addEventListener("click", exportDeathSummaryImage);
+}
+
+function exportDeathSummaryImage() {
+  const canvasExport = document.createElement("canvas");
+  canvasExport.width = 1200;
+  canvasExport.height = 900;
+  const ex = canvasExport.getContext("2d");
+  ex.fillStyle = "#111";
+  ex.fillRect(0, 0, canvasExport.width, canvasExport.height);
+  ex.fillStyle = "white";
+  ex.font = "bold 44px sans-serif";
+  ex.fillText("R-Survivor - Resumen de run", 40, 60);
+  ex.font = "26px sans-serif";
+  ex.fillText(`Tiempo: ${formatTime(gameTime)}   Kills: ${kills}   Puntos: ${score}`, 40, 110);
+  ex.font = "bold 30px sans-serif";
+  ex.fillText("Armas", 40, 170);
+  ex.font = "22px sans-serif";
+  let y = 210;
+  for (const [id] of Object.entries(player.weapons || {})) {
+    if (getPauseGroupForId(id) !== "weapons") continue;
+    const st = player.runWeaponStats?.[id] || { damage: 0, kills: 0, acquiredAt: 0 };
+    ex.fillText(`${getWeaponDisplayName(id)} · Daño ${Math.round(st.damage)} · Kills ${st.kills || 0} · Min ${formatTime(st.acquiredAt || 0)}`, 60, y);
+    y += 34;
+  }
+  y += 22;
+  ex.font = "bold 30px sans-serif";
+  ex.fillText("Items", 40, y);
+  y += 40;
+  ex.font = "22px sans-serif";
+  const itemIds = new Set();
+  for (const [id] of Object.entries(player.weapons || {})) if (getPauseGroupForId(id) === "items") itemIds.add(id);
+  for (const id of ["scaryMedkit","eviolite","runningShoes","drill","leaderBadge","soap","slimeJam","greenPlort","firePlort","pokeball","chicken"]) {
+    if (player[`${id}Active`] || player.weapons?.[id]) itemIds.add(id);
+  }
+  for (const id of itemIds) {
+    const name = EncyclopediaDatabase.items?.[id]?.name || getWeaponDisplayName(id);
+    ex.fillText(name, 60, y);
+    y += 30;
+  }
+  const link = document.createElement("a");
+  link.download = `r-survivor-run-${Date.now()}.png`;
+  link.href = canvasExport.toDataURL("image/png");
+  link.click();
+}
+
 function endGame() {
   gameOver = true;
   stopMusic();
@@ -5551,6 +5698,7 @@ function endGame() {
   finalTime.textContent = formatTime(gameTime);
   finalKills.textContent = kills;
   finalScore.textContent = score;
+  renderGameOverBuildPanel();
 
   gameOverPanel.classList.remove("hidden");
 }
