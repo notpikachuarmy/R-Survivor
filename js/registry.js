@@ -212,6 +212,11 @@ const BiomeRegistry = {
     id: "plains",
     name: "Planicie",
     bounds: { type: "default" },
+    background: {
+    type: "tile",
+    image: "assets/biomes/plains/grass_tile.png",
+    tileSize: 64
+    },
     enemyPool: [
       { id: "slime", weight: 60, minTime: 0 },
       { id: "goldSlime", weight: 1, minTime: 60 },
