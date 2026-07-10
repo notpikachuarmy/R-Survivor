@@ -131,7 +131,7 @@ const WeaponRegistry = {
     initialStats: {
       tags: ["cursor", "digital", "click"],
       damage: 8,
-      clickCooldown: 5.6,
+      clickCooldown: 2,
       count: 1,
       range: 520,
       moveSpeed: 520,
