@@ -601,24 +601,106 @@ function registerWeaponUpgrade(weaponId, upgradeId = null, unique = false) {
   }
 }
 
-function getAvailableUpgrades() {
-  return UPGRADE_POOL.filter(upgrade => {
-    if (!player.weapons[upgrade.weaponId]) return false;
+const UPGRADE_EPSILON = 0.0001;
 
-    if (
-      upgrade.unique &&
-      player.uniqueUpgrades &&
-      player.uniqueUpgrades[upgrade.id]
-    ) {
-      return false;
+const NO_MORE_UPGRADES_HEAL_OPTION = {
+  id: "no_more_upgrades_alioli_potatoes",
+  name: "Patatas con alioli",
+  description: "No quedan mejoras disponibles para tu build. Curas 30 PS.",
+  isFallbackHeal: true,
+  apply() {
+    if (typeof ItemDatabase !== "undefined" && ItemDatabase.alioliPotatoes) {
+      ItemDatabase.alioliPotatoes.apply();
+      return;
     }
 
-    return true;
-  });
+    const lifeBefore = player.life || 0;
+    player.life = Math.min(player.maxLife || 0, lifeBefore + 30);
+
+    if (typeof saveData !== "undefined" && saveData.stats) {
+      saveData.stats.totalAlioliPotatoesEaten = (saveData.stats.totalAlioliPotatoesEaten || 0) + 1;
+      saveData.stats.totalHealingReceived = (saveData.stats.totalHealingReceived || 0) + Math.max(0, player.life - lifeBefore);
+    }
+
+    if (typeof checkAchievements === "function") checkAchievements();
+    if (typeof saveGameData === "function") saveGameData(saveData);
+  }
+};
+
+function isUpgradeStillUseful(upgrade) {
+  if (!upgrade || !upgrade.weaponId) return false;
+
+  const weapon = player.weapons?.[upgrade.weaponId];
+  if (!weapon) return false;
+
+  if (
+    upgrade.unique &&
+    player.uniqueUpgrades &&
+    player.uniqueUpgrades[upgrade.id]
+  ) {
+    return false;
+  }
+
+  if (typeof upgrade.canApply === "function") {
+    return upgrade.canApply(player, weapon) !== false;
+  }
+
+  switch (upgrade.id) {
+    case "stone_fire_rate":
+      return (weapon.cooldown ?? Infinity) > 0.25 + UPGRADE_EPSILON;
+
+    case "patataBoom_fire_rate":
+      return (weapon.cooldown ?? Infinity) > 1.2 + UPGRADE_EPSILON;
+
+    case "patataBoom_chain":
+      return weapon.chain !== true;
+
+    case "watermelonSeedTurret_fire_rate":
+      return (weapon.fireCooldown ?? Infinity) > 0.25 + UPGRADE_EPSILON;
+
+    case "watermelonSeedTurret_cooldown":
+      return (weapon.respawnCooldown ?? Infinity) > 2 + UPGRADE_EPSILON;
+
+    case "chikoritaLeaf_fire_rate":
+      return (weapon.cooldown ?? Infinity) > 0.35 + UPGRADE_EPSILON;
+
+    case "sockRock_fire_rate":
+      return (weapon.cooldown ?? Infinity) > 0.35 + UPGRADE_EPSILON;
+
+    case "firePlort_tick_rate":
+      return (player.burnTickRate ?? Infinity) > 0.35 + UPGRADE_EPSILON;
+
+    case "firePlort_chance":
+      return (player.burnChance ?? 0) < 0.35 - UPGRADE_EPSILON;
+
+    case "chicken_giant":
+      return (player.chickenGiantChance ?? 0) < 0.01 - UPGRADE_EPSILON;
+
+    case "cursor_click_speed":
+      return (weapon.clickCooldown ?? Infinity) > 1.6 + UPGRADE_EPSILON;
+
+    case "rooster_giant":
+      return player.roosterGiantUnlocked !== true;
+
+    case "rooster_slime":
+      return player.roosterSlimeUnlocked !== true;
+
+    default:
+      return true;
+  }
+}
+
+function getAvailableUpgrades() {
+  return UPGRADE_POOL.filter(isUpgradeStillUseful);
 }
 
 function getRandomUpgrades(amount = 3) {
   const available = getAvailableUpgrades();
+
+  if (available.length === 0) {
+    return [NO_MORE_UPGRADES_HEAL_OPTION];
+  }
+
   const result = [];
 
   while (result.length < amount && available.length > 0) {

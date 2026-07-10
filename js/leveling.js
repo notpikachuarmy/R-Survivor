@@ -34,7 +34,11 @@ function openLevelUpPanel() {
 
     card.addEventListener("click", () => {
   upgrade.apply();
-  registerWeaponUpgrade(upgrade.weaponId, upgrade.id, upgrade.unique === true);
+
+  if (!upgrade.isFallbackHeal) {
+    registerWeaponUpgrade(upgrade.weaponId, upgrade.id, upgrade.unique === true);
+  }
+
   closeLevelUpPanel();
 });
 
