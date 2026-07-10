@@ -1936,7 +1936,7 @@ function getEnemyStatMultiplier(enemy, stat) {
 function updateCloudSlime(enemy, dt, target) {
   target = target || player;
   enemy.cloudTimer = (enemy.cloudTimer ?? Math.random() * (enemy.cloudCooldown || 4)) - dt;
-  enemy.rainTimer = (enemy.rainTimer ?? 4 + Math.random() * (enemy.rainCooldown || 9)) - dt;
+  enemy.rainTimer = (enemy.rainTimer ?? 1.2 + Math.random() * 2.2) - dt;
   enemy.orbitAngle = (enemy.orbitAngle ?? Math.atan2(enemy.y - target.y, enemy.x - target.x)) + dt * 0.9;
 
   const preferred = enemy.orbitDistance || 300;
@@ -1988,20 +1988,21 @@ function spawnSlimeCloud(enemy, angleToPlayer) {
 }
 
 function spawnSlimeRainCloud(enemy) {
-  const moveAngle = Math.random() * Math.PI * 2;
-  const driftSpeed = 22 + Math.random() * 20;
+  const angle = Math.random() * Math.PI * 2;
+  const driftSpeed = 28 + Math.random() * 22;
+
   slimeRainClouds.push({
     id: "slimeRainCloud",
     x: enemy.x,
     y: enemy.y,
-    vx: Math.cos(moveAngle) * driftSpeed,
-    vy: Math.sin(moveAngle) * driftSpeed,
+    vx: Math.cos(angle) * driftSpeed,
+    vy: Math.sin(angle) * driftSpeed,
     width: 64,
     height: 40,
     size: 64,
-    radius: 120,
+    radius: 135,
     particleTimer: 0,
-    lifeTime: enemy.rainDuration || 4,
+    lifeTime: enemy.rainDuration || 5.5,
     sprite: Assets.effects.cloudRain
   });
 }
@@ -2019,6 +2020,7 @@ function updateSlimeRainClouds(dt) {
     cloud.x += (cloud.vx || 0) * dt;
     cloud.y += (cloud.vy || 0) * dt;
     cloud.particleTimer -= dt;
+
     if (cloud.particleTimer <= 0) {
       const angle = Math.random() * Math.PI * 2;
       const radius = Math.random() * cloud.radius;
@@ -2027,21 +2029,21 @@ function updateSlimeRainClouds(dt) {
         y: cloud.y + Math.sin(angle) * radius,
         size: 16,
         collision: 8,
-        lifeTime: 0.75,
+        lifeTime: 1.05,
         sprite: Assets.effects.slimeRainParticle
       });
-      cloud.particleTimer = 0.08;
+      cloud.particleTimer = 0.055;
     }
-
   }
 
   for (const particle of slimeRainParticles) {
     particle.lifeTime -= dt;
+
     for (const enemy of enemies) {
       if (enemy.dead || !isSlimeEntity(enemy)) continue;
-      if (distance(enemy, particle) < (enemy.collision || 16) + (particle.collision || 8)) {
-        enemy.slimeRainBoostTimer = Math.max(enemy.slimeRainBoostTimer || 0, 3.5);
-        particle.lifeTime = 0;
+      if (distance(enemy, particle) < enemy.collision + (particle.collision || 8)) {
+        enemy.slimeRainBoostTimer = Math.max(enemy.slimeRainBoostTimer || 0, 3.0);
+        particle.lifeTime = Math.min(particle.lifeTime, 0.12);
         break;
       }
     }
@@ -3499,7 +3501,7 @@ if (enemy.id === "slime") {
 
   if (enemy.id === "cloudSlimeGiant") {
     saveData.stats.totalCloudSlimeGiantKills++;
-    if (Math.random() < (enemy.chestChance || 0.1)) {
+    if (Math.random() < (enemy.chestChance || 0)) {
       spawnChest(enemy.x, enemy.y);
     }
     if (player.scaryMedkitActive && Math.random() < 0.25) {
@@ -3788,6 +3790,19 @@ function closeBlackChestRewardPanel() {
 
 const BLACK_CHEST_WEAPONS = [
   {
+    id: "stone",
+    unlockKey: null,
+
+    name: "Piedra",
+    description: "Arma básica: lanza piedras al enemigo más cercano. Aparece en Cofre Negro si no la elegiste como arma inicial.",
+
+    sprite: () => Assets.projectiles.stone,
+
+    apply() {
+      applyWeaponDefinition("stone");
+    }
+  },
+  {
     id: "patataBoom",
     unlockKey: "patataBoom",
 
@@ -4041,7 +4056,7 @@ function getBlackChestRewards(amount = 3) {
   const pool = [];
 
   for (const weapon of BLACK_CHEST_WEAPONS) {
-    const unlocked = saveData.unlocks[weapon.unlockKey];
+    const unlocked = weapon.unlockKey == null ? true : saveData.unlocks[weapon.unlockKey];
 
     let owned = player.weapons[weapon.id];
 
