@@ -745,3 +745,48 @@ body {
   display: inline-block;
   transition: transform 0.15s ease;
 }
+
+.achievements-controls {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 0 0 18px;
+}
+
+.achievements-controls button {
+  margin-top: 0;
+}
+
+.achievement-progress {
+  margin: 12px 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  text-align: left;
+}
+
+.achievement-progress strong {
+  display: block;
+  margin-bottom: 8px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.achievement-progress-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.achievement-progress-row span:first-child {
+  text-align: left;
+}
+
+.achievement-progress-row span:last-child {
+  min-width: 56px;
+  text-align: right;
+  font-weight: bold;
+}
