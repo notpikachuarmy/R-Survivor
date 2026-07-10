@@ -104,6 +104,7 @@ const player = {
   evioliteActive: false,
   runningShoesActive: false,
   drillActive: false,
+  laprasFloatActive: false,
   leaderBadgeActive: false,
   soapActive: false,
   slimeJamActive: false,
@@ -866,6 +867,7 @@ function resetPlayerForNewRun() {
   player.evioliteActive = false;
   player.runningShoesActive = false;
   player.drillActive = false;
+  player.laprasFloatActive = false;
   player.leaderBadgeActive = false;
   player.soapActive = false;
   player.slimeJamActive = false;
@@ -1192,6 +1194,7 @@ function renderPauseBuildPanel() {
     [player.evioliteActive, "Mineral evolutivo", "eviolite", [["Efecto", "Reduce daño recibido"]]],
     [player.runningShoesActive, "Deportivas", "runningShoes", [["Velocidad", Math.round(player.speed)] ]],
     [player.drillActive, "Taladro", "drill", [["Efecto", "Atraviesas rocas"]]],
+    [player.laprasFloatActive, "Flotador Lapras", "laprasFloat", [["Efecto", "Caminas sobre el agua del río"]]],
     [player.leaderBadgeActive, "Distintivo de líder", "leaderBadge", [["Aliados/torretas", "+15% daño"]]],
     [player.soapActive, "Jabón", "soap", [["Efecto", "Puede esquivar daño"]]],
     [player.slimeJamActive, "Mermelada Slime", "slimeJam", [["Contra slimes", "+3 daño"]]],
@@ -3482,6 +3485,10 @@ function updateAlly(enemy, dt) {
 }
 
 function onEnemyKilled(enemy, source = null) {
+  const deathBiome = typeof getBiomeAt === "function" ? getBiomeAt(enemy.x, enemy.y) : null;
+  if (deathBiome?.id === "river") {
+    saveData.stats.totalEnemiesKilledInRiver = (saveData.stats.totalEnemiesKilledInRiver || 0) + 1;
+  }
   if (source === "watermelonSeedTurret") {
   saveData.stats.totalWatermelonTurretKills++;
 }
@@ -3961,6 +3968,20 @@ const BLACK_CHEST_WEAPONS = [
   }
 },
   {
+  id: "laprasFloat",
+  unlockKey: "laprasFloat",
+
+  name: "Flotador Lapras",
+  description: "Item de run: permite caminar sobre las casillas de agua del río.",
+
+  sprite: () => Assets.items.laprasFloat,
+
+  apply() {
+    player.laprasFloatActive = true;
+    unlockEncyclopedia("items", "laprasFloat");
+  }
+},
+  {
   id: "soap",
   unlockKey: "soap",
 
@@ -4106,6 +4127,9 @@ function getBlackChestRewards(amount = 3) {
     }
     if (weapon.id === "leaderBadge") {
       owned = player.leaderBadgeActive;
+    }
+    if (weapon.id === "laprasFloat") {
+      owned = player.laprasFloatActive;
     }
     if (weapon.id === "soap") {
       owned = player.soapActive;

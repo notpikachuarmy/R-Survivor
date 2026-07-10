@@ -117,6 +117,9 @@ function getAchievementProgressLines(achievement) {
         case "kill100CloudSlimeGiants":
             return [makeProgressLine("Slimes Nube Gigantes", stats.totalCloudSlimeGiantKills, 100)];
 
+        case "unlockLaprasFloat":
+            return [makeProgressLine("Enemigos derrotados en el río", stats.totalEnemiesKilledInRiver, 20)];
+
         default:
             return [];
     }

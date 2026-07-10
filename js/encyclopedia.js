@@ -194,6 +194,18 @@ oranBerry: {
   ]
 },
 
+laprasFloat: {
+  id: "laprasFloat",
+  name: "Flotador Lapras",
+  category: "Item de run",
+  sprite: () => Assets.items.laprasFloat,
+  description: "Permite caminar sobre las casillas de agua del río durante la run.",
+  details: [
+    "Se obtiene en cofres negros tras desbloquear su logro.",
+    "El efecto termina al acabar la partida."
+  ]
+},
+
 runningShoes: {
   id: "runningShoes",
   name: "Deportivas",

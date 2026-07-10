@@ -78,6 +78,7 @@ const Assets = {
     chicken: new Image(),
     cursor: new Image(),
     rooster: new Image(),
+    laprasFloat: new Image(),
   },
 
   obstacles: {
@@ -234,6 +235,7 @@ Assets.items.firePlort.src = "assets/items/firePlort.png";
 Assets.items.chicken.src = "assets/items/chicken.png";
 Assets.items.cursor.src = "assets/items/cursor.png";
 Assets.items.rooster.src = "assets/items/rooster.png";
+Assets.items.laprasFloat.src = "assets/items/FlotadorLapras.png";
 
 Assets.obstacles.rock.src = "assets/obstacles/rock.png";
 Assets.obstacles.tree.src = "assets/obstacles/tree.png";

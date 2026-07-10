@@ -447,6 +447,22 @@ kill500Slimes: {
   }
 },
 
+  unlockLaprasFloat: {
+  id: "unlockLaprasFloat",
+  name: "Socorrista del río",
+  description: "Derrota a 20 enemigos dentro del bioma río.",
+  reward: "Desbloquea el Flotador Lapras en los cofres negros.",
+
+  check() {
+    return (saveData.stats.totalEnemiesKilledInRiver || 0) >= 20;
+  },
+
+  unlock() {
+    saveData.unlocks.laprasFloat = true;
+    unlockEncyclopedia("items", "laprasFloat");
+  }
+},
+
 };
 
 function checkAchievements() {

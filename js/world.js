@@ -329,7 +329,7 @@ function isCollidingWithObstacle(entity) {
 
 function isCollidingWithRiverWater(entity) {
   if (entity !== player) return false;
-  if (entity.canWalkOnRiver || entity.canCrossRiver) return false;
+  if (entity.canWalkOnRiver || entity.canCrossRiver || entity.laprasFloatActive) return false;
   if (typeof isRiverWaterAt !== "function") return false;
 
   const radius = entity.collision || entity.size * 0.35 || 14;

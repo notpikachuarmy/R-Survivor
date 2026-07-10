@@ -35,6 +35,7 @@ const DEFAULT_SAVE = {
     totalCloudSlimeKills: 0,
     totalCloudSlimeGiantKills: 0,
     totalChickensSummoned: 0,
+    totalEnemiesKilledInRiver: 0,
   },
 
   senseis: {
@@ -87,6 +88,7 @@ const DEFAULT_SAVE = {
     chicken: false,
     cursor: false,
     rooster: false,
+    laprasFloat: false,
   }
 };
 
