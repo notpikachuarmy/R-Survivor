@@ -149,6 +149,31 @@ function getRandomFromArray(array, random) {
   return array[Math.floor(random() * array.length)];
 }
 
+
+function isWorldObjectPlacementValid(template, x, y, biomeId) {
+  // Evita que decoraciones/obstáculos de planicie o bosque aparezcan encima del río
+  // o invadan visualmente sus orillas. El río usa su propio bioma limpio.
+  if (biomeId === "river") return false;
+
+  const halfW = (template.width || 32) / 2;
+  const halfH = (template.height || 32) / 2;
+  const padding = 12;
+
+  const checks = [
+    [x, y],
+    [x - halfW - padding, y],
+    [x + halfW + padding, y],
+    [x, y - halfH - padding],
+    [x, y + halfH + padding],
+    [x - halfW - padding, y - halfH - padding],
+    [x + halfW + padding, y - halfH - padding],
+    [x - halfW - padding, y + halfH + padding],
+    [x + halfW + padding, y + halfH + padding]
+  ];
+
+  return checks.every(([checkX, checkY]) => getBiomeIdAt(checkX, checkY) === biomeId);
+}
+
 function createChunk(chunkX, chunkY) {
   const random = seededRandom(getSeedFromChunk(chunkX, chunkY));
 
@@ -173,28 +198,36 @@ function createChunk(chunkX, chunkY) {
   const decorationAmount = getRandomAmount(getBiomeObjectAmount(biome, "decoration"), random);
   const obstacleAmount = getRandomAmount(getBiomeObjectAmount(biome, "obstacle"), random);
 
-  for (let i = 0; i < decorationAmount && decorationTemplates.length; i++) {
+  for (let i = 0, attempts = 0; chunk.decorations.length < decorationAmount && decorationTemplates.length && attempts < decorationAmount * 12; attempts++) {
     const template = getRandomFromArray(decorationTemplates, random);
+    const x = baseX + random() * WORLD_CHUNK_SIZE;
+    const y = baseY + random() * WORLD_CHUNK_SIZE;
+
+    if (!isWorldObjectPlacementValid(template, x, y, biomeId)) continue;
 
     chunk.decorations.push({
       id: template.id,
       sprite: template.sprite(),
-      x: baseX + random() * WORLD_CHUNK_SIZE,
-      y: baseY + random() * WORLD_CHUNK_SIZE,
+      x,
+      y,
       width: template.width,
       height: template.height,
       rotation: random() * Math.PI * 2
     });
   }
 
-  for (let i = 0; i < obstacleAmount && obstacleTemplates.length; i++) {
+  for (let i = 0, attempts = 0; chunk.obstacles.length < obstacleAmount && obstacleTemplates.length && attempts < obstacleAmount * 16; attempts++) {
     const template = getRandomFromArray(obstacleTemplates, random);
+    const x = baseX + random() * WORLD_CHUNK_SIZE;
+    const y = baseY + random() * WORLD_CHUNK_SIZE;
+
+    if (!isWorldObjectPlacementValid(template, x, y, biomeId)) continue;
 
     const obstacle = {
       id: template.id,
       sprite: template.sprite(),
-      x: baseX + random() * WORLD_CHUNK_SIZE,
-      y: baseY + random() * WORLD_CHUNK_SIZE,
+      x,
+      y,
       width: template.width,
       height: template.height,
       size: template.collision * 2,
