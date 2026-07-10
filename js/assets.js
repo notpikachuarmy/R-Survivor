@@ -40,7 +40,7 @@ const Assets = {
     blueFireball: new Image(),
     shuriken: new Image(),
     sockSwing: new Image(),
-    mouseCursor: new Image(),
+    // Cursor no usa sprite de proyectil: se dibuja siempre con Assets.items.cursor.
   },
 
   items: {
@@ -174,7 +174,7 @@ Assets.projectiles.knife.src = "assets/projectiles/knife.png";
 Assets.projectiles.blueFireball.src = "assets/projectiles/blueFireball.png";
 Assets.projectiles.shuriken.src = "assets/projectiles/shuriken.png";
 Assets.projectiles.sockSwing.src = "assets/projectiles/sockSwing.png";
-Assets.projectiles.mouseCursor.src = "assets/projectiles/mouseCursor.png";
+// No cargar assets/projectiles/mouseCursor.png: el cursor usa assets/items/cursor.png para evitar cambios de tamaño/orientación.
 
 Assets.items.chest.src = "assets/items/chest.png";
 Assets.items.alioliPotatoes.src = "assets/items/alioli_potatoes.png";

@@ -4220,7 +4220,8 @@ function createMouseCursor() {
     target: null,
     clickTimer: 0,
 
-    sprite: Assets.projectiles.mouseCursor,
+    sprite: Assets.items.cursor,
+    // Sprite fijo: el cursor no rota ni hace espejo aunque cambie de objetivo.
     facing: "right",
     fixedSpriteDirection: true
   };
@@ -4257,6 +4258,13 @@ function updateMouseCursors(dt) {
   }
 
   createMissingMouseCursors();
+
+  // Blindaje: todos los cursores usan el icono del item, no un sprite de proyectil.
+  for (const cursor of mouseCursors) {
+    cursor.sprite = Assets.items.cursor;
+    cursor.facing = "right";
+    cursor.fixedSpriteDirection = true;
+  }
 
   const usedTargets = [];
 
