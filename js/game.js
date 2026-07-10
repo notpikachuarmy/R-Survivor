@@ -4220,7 +4220,8 @@ function createMouseCursor() {
     target: null,
     clickTimer: 0,
 
-    sprite: Assets.projectiles.mouseCursor
+    sprite: Assets.projectiles.mouseCursor,
+    facing: "right"
   };
 }
 
@@ -4306,7 +4307,7 @@ function moveMouseCursorToTarget(cursor, target, dt) {
   cursor.x += (dx / dist) * weapon.moveSpeed * dt;
   cursor.y += (dy / dist) * weapon.moveSpeed * dt;
 
-  cursor.facing = dx < 0 ? "left" : "right";
+  cursor.facing = "right";
 }
 
 function idleMouseCursor(cursor, dt) {
@@ -4334,7 +4335,7 @@ function idleMouseCursor(cursor, dt) {
   cursor.x += (dx / dist) * speed * dt;
   cursor.y += (dy / dist) * speed * dt;
 
-  cursor.facing = dx < 0 ? "left" : "right";
+  cursor.facing = "right";
 }
 
 function clickEnemyWithCursor(cursor, enemy) {
@@ -5548,7 +5549,7 @@ function render() {
     cursor.x,
     cursor.y,
     cursor.size,
-    cursor.facing || "right"
+    "right"
   );
 }
   for (const effect of mouseClickEffects) {
