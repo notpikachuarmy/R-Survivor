@@ -5252,8 +5252,8 @@ function getRiverWaterTileImage(worldX, worldY, tileSize) {
   if (!east) return river.riverE;
 
   // Interior: alterna sutilmente para que el agua no parezca un bloque plano.
-  const horizontalBias = Math.abs(getRiverCenterY(sampleX + tileSize) - getRiverCenterY(sampleX - tileSize)) < 40;
-  return horizontalBias ? (river.waterHorizontal || river.riverCenter) : (river.waterVertical || river.riverCenter);
+  const flowAxis = typeof getRiverFlowAxisAt === "function" ? getRiverFlowAxisAt(sampleX, sampleY) : "horizontal";
+  return flowAxis === "horizontal" ? (river.waterHorizontal || river.riverCenter) : (river.waterVertical || river.riverCenter);
 }
 
 function drawBiomeBackground() {

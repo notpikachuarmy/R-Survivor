@@ -286,14 +286,85 @@ const BiomeRegistry = {
 const BIOME_TILE_SIZE = 64;
 const RIVER_HALF_WIDTH = 132;
 const RIVER_BANK_WIDTH = 92;
-const FOREST_CELL_SIZE = 2300;
+const RIVER_REGION_SIZE = 4200;
 
-function getRiverCenterY(x) {
-  return 900 + Math.sin(x / 760) * 360 + Math.sin(x / 1730 + 1.7) * 210;
+function hashBiomeCell(cellX, cellY) {
+  let value = Math.imul(cellX, 374761393) ^ Math.imul(cellY, 668265263);
+  value = (value ^ (value >>> 13)) >>> 0;
+  value = Math.imul(value, 1274126177) >>> 0;
+  return ((value ^ (value >>> 16)) >>> 0) / 4294967296;
+}
+
+function getRiverSource(cellX, cellY) {
+  const roll = hashBiomeCell(cellX, cellY);
+
+  // Varios ríos en el mundo, pero no en todas las regiones para que no invadan el mapa.
+  // Las dos fuentes fijas cerca del origen ayudan a que el jugador encuentre ríos al explorar
+  // sin convertirlos en un único río vertical global.
+  const forcedNearSpawn = (cellX === 0 && cellY === 0) || (cellX === -1 && cellY === 1);
+  if (!forcedNearSpawn && roll < 0.34) return null;
+
+  const angleRoll = hashBiomeCell(cellX + 101, cellY - 73);
+  const angle = angleRoll * Math.PI * 2;
+  const dirX = Math.cos(angle);
+  const dirY = Math.sin(angle);
+  const normalX = -dirY;
+  const normalY = dirX;
+
+  const originX = cellX * RIVER_REGION_SIZE + RIVER_REGION_SIZE * (0.22 + hashBiomeCell(cellX + 11, cellY + 5) * 0.56);
+  const originY = cellY * RIVER_REGION_SIZE + RIVER_REGION_SIZE * (0.22 + hashBiomeCell(cellX - 7, cellY + 19) * 0.56);
+
+  return {
+    originX,
+    originY,
+    dirX,
+    dirY,
+    normalX,
+    normalY,
+    amp1: 260 + hashBiomeCell(cellX + 31, cellY - 41) * 260,
+    amp2: 90 + hashBiomeCell(cellX - 53, cellY + 67) * 160,
+    freq1: 820 + hashBiomeCell(cellX + 79, cellY + 83) * 640,
+    freq2: 1550 + hashBiomeCell(cellX - 97, cellY - 89) * 950,
+    phase1: hashBiomeCell(cellX + 127, cellY - 131) * Math.PI * 2,
+    phase2: hashBiomeCell(cellX - 149, cellY + 151) * Math.PI * 2
+  };
+}
+
+function getRiverDistanceToSource(x, y, river) {
+  const dx = x - river.originX;
+  const dy = y - river.originY;
+  const along = dx * river.dirX + dy * river.dirY;
+  const perp = dx * river.normalX + dy * river.normalY;
+  const curve =
+    Math.sin(along / river.freq1 + river.phase1) * river.amp1 +
+    Math.sin(along / river.freq2 + river.phase2) * river.amp2;
+
+  return Math.abs(perp - curve);
+}
+
+function getNearestRiverInfo(x, y) {
+  const centerCellX = Math.floor(x / RIVER_REGION_SIZE);
+  const centerCellY = Math.floor(y / RIVER_REGION_SIZE);
+  let best = null;
+
+  // Miramos regiones vecinas porque un río puede cruzar chunks y celdas cercanas.
+  for (let cellY = centerCellY - 1; cellY <= centerCellY + 1; cellY++) {
+    for (let cellX = centerCellX - 1; cellX <= centerCellX + 1; cellX++) {
+      const river = getRiverSource(cellX, cellY);
+      if (!river) continue;
+
+      const distance = getRiverDistanceToSource(x, y, river);
+      if (!best || distance < best.distance) {
+        best = { distance, river };
+      }
+    }
+  }
+
+  return best;
 }
 
 function getRiverDistance(x, y) {
-  return Math.abs(y - getRiverCenterY(x));
+  return getNearestRiverInfo(x, y)?.distance ?? Infinity;
 }
 
 function isRiverWaterAt(x, y) {
@@ -304,30 +375,46 @@ function isRiverBiomeAt(x, y) {
   return getRiverDistance(x, y) <= RIVER_HALF_WIDTH + RIVER_BANK_WIDTH;
 }
 
-function hashBiomeCell(cellX, cellY) {
-  let value = Math.imul(cellX, 374761393) ^ Math.imul(cellY, 668265263);
-  value = (value ^ (value >>> 13)) >>> 0;
-  value = Math.imul(value, 1274126177) >>> 0;
-  return ((value ^ (value >>> 16)) >>> 0) / 4294967296;
+function getRiverFlowAxisAt(x, y) {
+  const info = getNearestRiverInfo(x, y);
+  if (!info?.river) return "horizontal";
+  return Math.abs(info.river.dirX) >= Math.abs(info.river.dirY) ? "horizontal" : "vertical";
+}
+
+const FOREST_CELL_SIZE = 5200;
+
+function getForestRegionCenter(cellX, cellY) {
+  return {
+    x: cellX * FOREST_CELL_SIZE + FOREST_CELL_SIZE * (0.25 + hashBiomeCell(cellX + 17, cellY - 11) * 0.5),
+    y: cellY * FOREST_CELL_SIZE + FOREST_CELL_SIZE * (0.25 + hashBiomeCell(cellX - 29, cellY + 7) * 0.5)
+  };
 }
 
 function isForestBiomeAt(x, y) {
-  const cellX = Math.floor((x + 900) / FOREST_CELL_SIZE);
-  const cellY = Math.floor((y - 500) / FOREST_CELL_SIZE);
-  const localX = ((x + 900) % FOREST_CELL_SIZE + FOREST_CELL_SIZE) % FOREST_CELL_SIZE;
-  const localY = ((y - 500) % FOREST_CELL_SIZE + FOREST_CELL_SIZE) % FOREST_CELL_SIZE;
-  const patchRoll = hashBiomeCell(cellX, cellY);
+  const centerCellX = Math.floor(x / FOREST_CELL_SIZE);
+  const centerCellY = Math.floor(y / FOREST_CELL_SIZE);
+  let ownerCellX = centerCellX;
+  let ownerCellY = centerCellY;
+  let bestDistance = Infinity;
 
-  if (patchRoll < 0.42) return false;
+  // Voronoi simple: el mundo queda dividido en zonas grandes, no en parches pequeños.
+  for (let cellY = centerCellY - 1; cellY <= centerCellY + 1; cellY++) {
+    for (let cellX = centerCellX - 1; cellX <= centerCellX + 1; cellX++) {
+      const center = getForestRegionCenter(cellX, cellY);
+      const distance = Math.hypot(x - center.x, y - center.y);
 
-  const centerX = FOREST_CELL_SIZE * (0.35 + hashBiomeCell(cellX + 17, cellY - 11) * 0.3);
-  const centerY = FOREST_CELL_SIZE * (0.35 + hashBiomeCell(cellX - 29, cellY + 7) * 0.3);
-  const radiusX = FOREST_CELL_SIZE * (0.30 + hashBiomeCell(cellX + 5, cellY + 19) * 0.16);
-  const radiusY = FOREST_CELL_SIZE * (0.30 + hashBiomeCell(cellX - 13, cellY - 3) * 0.16);
-  const dx = (localX - centerX) / radiusX;
-  const dy = (localY - centerY) / radiusY;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        ownerCellX = cellX;
+        ownerCellY = cellY;
+      }
+    }
+  }
 
-  return dx * dx + dy * dy <= 1;
+  // Algunas regiones grandes son bosque y otras planicie.
+  // El origen se fuerza a planicie para que el inicio no quede saturado de árboles.
+  if (ownerCellX === 0 && ownerCellY === 0) return false;
+  return hashBiomeCell(ownerCellX + 211, ownerCellY - 223) > 0.48;
 }
 
 function getBiomeAt(x, y) {
