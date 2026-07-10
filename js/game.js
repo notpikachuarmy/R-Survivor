@@ -1310,7 +1310,7 @@ function renderPauseBuildPanel() {
       <div class="build-icon-grid">${weaponCards}</div>
     </section>
     <section class="pause-build-section wide">
-      <h3>Items <span class="build-count">${itemEntries.length}/${countUnlockedEncyclopediaEntries("items") || countTotalEncyclopediaEntries("items")}</span></h3>
+      <h3>Items de run <span class="build-count">${itemEntries.length}/${RUN_ITEM_IDS.size}</span></h3>
       <div class="build-icon-grid">${itemCards}</div>
     </section>
   `;
