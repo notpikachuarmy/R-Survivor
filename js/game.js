@@ -4219,6 +4219,9 @@ function createMouseCursor() {
 
     target: null,
     clickTimer: 0,
+    state: "search",
+    wanderTarget: null,
+    wanderTimer: 0,
 
     sprite: Assets.items.cursor,
     // Sprite fijo: el cursor no rota ni hace espejo aunque cambie de objetivo.
@@ -4269,7 +4272,22 @@ function updateMouseCursors(dt) {
   const usedTargets = [];
 
   for (const cursor of mouseCursors) {
-    cursor.clickTimer -= dt;
+    cursor.clickTimer = Math.max(0, cursor.clickTimer - dt);
+
+    // Mientras el click está en cooldown, el cursor NO se queda pegado al enemigo.
+    // Entra en modo vagar y se mueve a puntos aleatorios de la pantalla hasta poder volver a clicar.
+    if (cursor.clickTimer > 0) {
+      cursor.state = "cooldownWander";
+      cursor.target = null;
+      updateMouseCursorWander(cursor, dt, true);
+      continue;
+    }
+
+    if (cursor.state === "cooldownWander") {
+      cursor.state = "search";
+      cursor.wanderTarget = null;
+      cursor.wanderTimer = 0;
+    }
 
     if (
       !cursor.target ||
@@ -4285,9 +4303,12 @@ function updateMouseCursors(dt) {
     }
 
     if (!cursor.target) {
-      idleMouseCursor(cursor, dt);
+      cursor.state = "wander";
+      updateMouseCursorWander(cursor, dt, false);
       continue;
     }
+
+    cursor.state = "attack";
 
     moveMouseCursorToTarget(cursor, cursor.target, dt);
 
@@ -4295,12 +4316,12 @@ function updateMouseCursors(dt) {
       distance(cursor, cursor.target) <=
       cursor.collision + cursor.target.collision + weapon.clickRange
     ) {
-      if (cursor.clickTimer <= 0) {
-        clickEnemyWithCursor(cursor, cursor.target);
-        cursor.clickTimer = weapon.clickCooldown;
-
-        cursor.target = null;
-      }
+      clickEnemyWithCursor(cursor, cursor.target);
+      cursor.clickTimer = weapon.clickCooldown;
+      cursor.target = null;
+      cursor.state = "cooldownWander";
+      cursor.wanderTarget = chooseMouseCursorWanderTarget(cursor, true);
+      cursor.wanderTimer = 0.35 + Math.random() * 0.45;
     }
   }
 }
@@ -4319,32 +4340,51 @@ function moveMouseCursorToTarget(cursor, target, dt) {
   cursor.facing = "right";
 }
 
-function idleMouseCursor(cursor, dt) {
-  if (cursor.idleAngle === undefined) {
-    cursor.idleAngle = Math.random() * Math.PI * 2;
-    cursor.idleTimer = 0.5 + Math.random();
+function chooseMouseCursorWanderTarget(cursor, preferAwayFromClick = false) {
+  const viewHalfW = Math.max(180, Math.min(canvas.width * 0.42, 520));
+  const viewHalfH = Math.max(140, Math.min(canvas.height * 0.38, 360));
+
+  // Punto aleatorio visible alrededor de la cámara/jugador.
+  // Así durante el CD se nota que el cursor sigue "vivo" y explorando, no esperando encima del enemigo.
+  let x = camera.x + (Math.random() * 2 - 1) * viewHalfW;
+  let y = camera.y + (Math.random() * 2 - 1) * viewHalfH;
+
+  // Evita elegir un punto demasiado pegado al lugar actual justo después del click.
+  if (preferAwayFromClick) {
+    for (let i = 0; i < 6 && distance(cursor, { x, y }) < 120; i++) {
+      x = camera.x + (Math.random() * 2 - 1) * viewHalfW;
+      y = camera.y + (Math.random() * 2 - 1) * viewHalfH;
+    }
   }
 
-  cursor.idleTimer -= dt;
+  return { x, y };
+}
 
-  if (cursor.idleTimer <= 0) {
-    cursor.idleAngle += -1 + Math.random() * 2;
-    cursor.idleTimer = 0.5 + Math.random();
+function updateMouseCursorWander(cursor, dt, forceRandomMovement = false) {
+  cursor.target = null;
+
+  if (!cursor.wanderTarget || cursor.wanderTimer <= 0 || distance(cursor, cursor.wanderTarget) < 14) {
+    cursor.wanderTarget = chooseMouseCursorWanderTarget(cursor, forceRandomMovement);
+    cursor.wanderTimer = 0.45 + Math.random() * 0.75;
   }
 
-  const desiredX = player.x + Math.cos(cursor.idleAngle) * 130;
-  const desiredY = player.y + Math.sin(cursor.idleAngle) * 90;
+  cursor.wanderTimer -= dt;
 
-  const dx = desiredX - cursor.x;
-  const dy = desiredY - cursor.y;
+  const dx = cursor.wanderTarget.x - cursor.x;
+  const dy = cursor.wanderTarget.y - cursor.y;
   const dist = Math.hypot(dx, dy) || 1;
 
-  const speed = 280;
+  const weapon = player.weapons.cursor;
+  const baseSpeed = weapon?.moveSpeed || 280;
+  const speed = Math.max(220, baseSpeed * 0.9);
 
   cursor.x += (dx / dist) * speed * dt;
   cursor.y += (dy / dist) * speed * dt;
 
+  // Fijamos orientación para que nunca haga espejo ni parpadee.
   cursor.facing = "right";
+  cursor.fixedSpriteDirection = true;
+  cursor.sprite = Assets.items.cursor;
 }
 
 function clickEnemyWithCursor(cursor, enemy) {
