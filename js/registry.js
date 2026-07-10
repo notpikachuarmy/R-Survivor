@@ -223,6 +223,8 @@ const BiomeRegistry = {
       { id: "slime", weight: 60, minTime: 0 },
       { id: "pinkSlime", weight: 12, minTime: 360 },
       { id: "pinkSlimeGiant", weight: 3, minTime: 360, unlockKey: "pinkSlimeGiant" },
+      { id: "cloudSlime", weight: 8, minTime: 360, unlockKey: "cloudSlime" },
+      { id: "cloudSlimeGiant", weight: 3, minTime: 360, unlockKey: "cloudSlimeGiant" },
       { id: "fireSlimeSmall", weight: 10, minTime: 30, unlockKey: "fireSlimeSmall" },
       { id: "slimeGiant", weight: 7, minTime: 45, unlockKey: "slimeGiant" },
       { id: "fireSlimeGiant", weight: 2, minTime: 45, unlockKey: "fireSlimeGiant", unique: true },

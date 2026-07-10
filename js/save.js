@@ -32,6 +32,8 @@ const DEFAULT_SAVE = {
     totalGoldSlimeGiantKills: 0,
     totalPinkSlimeKills: 0,
     totalPinkSlimeGiantKills: 0,
+    totalCloudSlimeKills: 0,
+    totalCloudSlimeGiantKills: 0,
     totalChickensSummoned: 0,
   },
 
@@ -77,6 +79,8 @@ const DEFAULT_SAVE = {
     goldPlort: false,
     goldSlimeGiant: false,
     pinkSlimeGiant: false,
+    cloudSlime: false,
+    cloudSlimeGiant: false,
     slimeJam: false,
     greenPlort: false,
     firePlort: false,

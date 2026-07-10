@@ -674,6 +674,51 @@ senseiTalent: {
   isBoss: false,
   chestChance: 0
 },
+  cloudSlimeGiant: {
+  id: "cloudSlimeGiant",
+  name: "Slime Nube Gigante",
+  type: "normal",
+  tags: ["slime", "cloud", "gigante"],
+  sprite: () => Assets.enemies.cloudSlimeGiant,
+  size: 96,
+  collision: 36,
+  life: 115,
+  speed: 90,
+  xpValue: 60,
+  scoreValue: 240,
+  attacks: ["cloudWall", "slimeRain"],
+  noContactDamage: true,
+  ignoresObstacles: true,
+  orbitDistance: 320,
+  cloudCooldown: 2.8,
+  rainCooldown: 9,
+  rainDuration: 4,
+  isBoss: false,
+  chestChance: 0,
+  cannotCapture: true,
+},
+  cloudSlime: {
+  id: "cloudSlime",
+  name: "Slime Nube",
+  type: "normal",
+  tags: ["slime", "cloud"],
+  sprite: () => Assets.enemies.cloudSlime,
+  size: 56,
+  collision: 20,
+  life: 32,
+  speed: 105,
+  xpValue: 14,
+  scoreValue: 70,
+  attacks: ["cloudWall"],
+  noContactDamage: true,
+  ignoresObstacles: true,
+  orbitDistance: 280,
+  cloudCooldown: 4.2,
+  isBoss: false,
+  chestChance: 0,
+  cannotCapture: true,
+},
+
 };
 
 function createEnemy(typeId, x, y) {
@@ -768,6 +813,12 @@ function createEnemy(typeId, x, y) {
     isBoss: data.isBoss,
     chestChance: data.chestChance,
     cannotCapture: data.cannotCapture || false,
+    noContactDamage: data.noContactDamage || false,
+    ignoresObstacles: data.ignoresObstacles || false,
+    orbitDistance: data.orbitDistance || 0,
+    cloudCooldown: data.cloudCooldown || 0,
+    rainCooldown: data.rainCooldown || 0,
+    rainDuration: data.rainDuration || 0,
     jumpsOverObstacles: data.jumpsOverObstacles || false,
     senseiId: data.senseiId || null,
 
@@ -822,6 +873,14 @@ if (typeId === "goldSlimeGiant") {
 
 if (typeId === "pinkSlimeGiant") {
   return saveData.unlocks.pinkSlimeGiant === true;
+}
+
+if (typeId === "cloudSlimeGiant") {
+  return saveData.unlocks.cloudSlimeGiant === true;
+}
+
+if (typeId === "cloudSlime") {
+  return saveData.unlocks.cloudSlime === true;
 }
 
   if (typeId === "rhyhorn") {

@@ -25,6 +25,8 @@ const Assets = {
     goldSlimeGiant: new Image(),
     pinkSlime: new Image(),
     pinkSlimeGiant: new Image(),
+    cloudSlime: new Image(),
+    cloudSlimeGiant: new Image(),
   },
 
   projectiles: {
@@ -107,6 +109,10 @@ const Assets = {
     meditation: new Image(),
     debuffCircle: new Image(),
     burnParticle: new Image(),
+    cloud: new Image(),
+    cloudVertical: new Image(),
+    cloudRain: new Image(),
+    slimeRainParticle: new Image(),
 },
   world: {
     magicCircle: new Image(),
@@ -155,6 +161,8 @@ Assets.enemies.goldSlime.src = "assets/enemies/goldSlime.png";
 Assets.enemies.goldSlimeGiant.src = "assets/enemies/goldSlimeGiant.png";
 Assets.enemies.pinkSlime.src = "assets/enemies/pinkSlime.png";
 Assets.enemies.pinkSlimeGiant.src = "assets/enemies/pinkSlimeGiant.png";
+Assets.enemies.cloudSlime.src = "assets/enemies/cloudSlime.png";
+Assets.enemies.cloudSlimeGiant.src = "assets/enemies/cloudSlimeGiant.png";
 
 Assets.projectiles.stone.src = "assets/projectiles/stone.png";
 Assets.projectiles.fireball.src = "assets/projectiles/fireball.png";
@@ -223,6 +231,10 @@ Assets.effects.smoke.src = "assets/effects/smoke.png";
 Assets.effects.meditation.src = "assets/effects/meditation.png";
 Assets.effects.debuffCircle.src = "assets/effects/debuffCircle.png";
 Assets.effects.burnParticle.src = "assets/effects/burnParticle.png";
+Assets.effects.cloud.src = "assets/effects/cloud.png";
+Assets.effects.cloudVertical.src = "assets/effects/cloud_wall_vertical.png";
+Assets.effects.cloudRain.src = "assets/effects/cloudRain.png";
+Assets.effects.slimeRainParticle.src = "assets/effects/slimeRainParticle.png";
 
 Assets.world.magicCircle.src = "assets/world/magicCircle.png";
 Assets.world.senseiStatue.src = "assets/world/senseiStatue.png";

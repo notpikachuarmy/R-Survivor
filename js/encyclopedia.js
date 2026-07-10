@@ -410,8 +410,8 @@ greenPlort: {
     "5 PS",
     "250 XP",
     "No ataca.",
+    "Velocidad: 115",
     "Se mueve dando vueltas por el mapa.",
-    "No es capturable.",
   ]
 },
     goldSlimeGiant: {
@@ -424,8 +424,8 @@ greenPlort: {
     "40 PS",
     "750 XP",
     "No ataca.",
+    "Velocidad: 90",
     "Se mueve dando vueltas por el mapa.",
-    "No es capturable.",
   ]
 },
     pinkSlime: {
@@ -437,6 +437,7 @@ greenPlort: {
   details: [
     "28 PS",
     "12 XP",
+    "Velocidad: 95",
     "Ataque: Salto",
   ]
 },
@@ -449,7 +450,41 @@ greenPlort: {
   details: [
     "110 PS",
     "55 XP",
+    "Velocidad: 75",
     "Ataque: Salto",
+  ]
+},
+
+    cloudSlimeGiant: {
+  id: "cloudSlimeGiant",
+  name: "Slime Nube Gigante",
+  category: "Enemigo",
+  sprite: () => Assets.enemies.cloudSlimeGiant,
+  description: "Slime resistente que rodea al jugador creando muros de nube y lluvia de baba para potenciar a otros slimes.",
+  details: [
+    "115 PS",
+    "60 XP",
+    "Velocidad: 90",
+    "Ataque: Muro de nube",
+    "Puede atravesar obstáculos.",
+    "No hace daño por contacto.",
+    "No es capturable."
+  ]
+},
+    cloudSlime: {
+  id: "cloudSlime",
+  name: "Slime Nube",
+  category: "Enemigo",
+  sprite: () => Assets.enemies.cloudSlime,
+  description: "Slime que mantiene distancia con el jugador y crea nubes que detienen proyectiles aliados.",
+  details: [
+    "32 PS",
+    "14 XP",
+    "Velocidad: 105",
+    "Ataque: Muro de nube",
+    "Puede atravesar obstáculos.",
+    "No hace daño por contacto.",
+    "No es capturable."
   ]
 },
     mimic: {
@@ -677,14 +712,35 @@ function renderEncyclopedia() {
   renderEncyclopediaCategory(container, "enemies", "Enemigos");
 }
 
-function renderEncyclopediaCategory(container, categoryId, title) {
-  const titleElement = document.createElement("h3");
-  titleElement.textContent = title;
-  titleElement.style.width = "100%";
-  titleElement.style.textAlign = "center";
-  container.appendChild(titleElement);
+function getUnlockedEncyclopediaCount(categoryId) {
+  const entries = Object.values(EncyclopediaDatabase[categoryId] || {});
+  const unlocked = saveData.encyclopedia[categoryId] || [];
+  return entries.filter(entry => unlocked.includes(entry.id)).length;
+}
 
-  const entries = EncyclopediaDatabase[categoryId];
+function renderEncyclopediaCategory(container, categoryId, title) {
+  const entries = EncyclopediaDatabase[categoryId] || {};
+  const total = Object.keys(entries).length;
+  const unlockedCount = getUnlockedEncyclopediaCount(categoryId);
+
+  const section = document.createElement("section");
+  section.className = "encyclopedia-section";
+
+  const header = document.createElement("button");
+  header.type = "button";
+  header.className = "encyclopedia-section-header";
+  header.innerHTML = `<span>${title} ${unlockedCount}/${total}</span><span class="encyclopedia-section-arrow">▼</span>`;
+
+  const grid = document.createElement("div");
+  grid.className = "encyclopedia-section-grid";
+
+  header.addEventListener("click", () => {
+    section.classList.toggle("collapsed");
+  });
+
+  section.appendChild(header);
+  section.appendChild(grid);
+  container.appendChild(section);
 
   for (const entry of Object.values(entries)) {
     const unlocked = saveData.encyclopedia[categoryId]?.includes(entry.id);
@@ -711,7 +767,7 @@ function renderEncyclopediaCategory(container, categoryId, title) {
       `;
     }
 
-    container.appendChild(card);
+    grid.appendChild(card);
   }
 }
 

@@ -414,6 +414,39 @@ kill500Slimes: {
   }
 },
 
+  unlockCloudSlimeGiant: {
+  id: "unlockCloudSlimeGiant",
+  name: "Cumulonimbo baboso",
+  description: "Derrota a 100 Slimes Rosas Gigantes, 100 Slimes de Fuego Gigantes y 100 Slimes Gigantes.",
+  reward: "Desbloquea el Slime Nube Gigante.",
+
+  check() {
+    return (saveData.stats.totalPinkSlimeGiantKills || 0) >= 100 &&
+      (saveData.stats.totalFireSlimeGiantKills || 0) >= 100 &&
+      (saveData.stats.totalSlimeGiantKills || 0) >= 100;
+  },
+
+  unlock() {
+    saveData.unlocks.cloudSlimeGiant = true;
+    unlockEncyclopedia("enemies", "cloudSlimeGiant");
+  }
+},
+  kill100CloudSlimeGiants: {
+  id: "kill100CloudSlimeGiants",
+  name: "Niebla domesticada",
+  description: "Derrota a 100 Slimes Nube Gigantes.",
+  reward: "Desbloquea el Slime Nube.",
+
+  check() {
+    return (saveData.stats.totalCloudSlimeGiantKills || 0) >= 100;
+  },
+
+  unlock() {
+    saveData.unlocks.cloudSlime = true;
+    unlockEncyclopedia("enemies", "cloudSlime");
+  }
+},
+
 };
 
 function checkAchievements() {

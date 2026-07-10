@@ -705,3 +705,43 @@ body {
 .death-build-header button {
   margin-top: 0 !important;
 }
+
+.encyclopedia-section {
+  width: 100%;
+  max-width: 1100px;
+  border: 2px solid rgba(255,255,255,0.65);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(0,0,0,0.22);
+}
+
+.encyclopedia-section-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 26px;
+  font-weight: bold;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.encyclopedia-section-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.encyclopedia-section.collapsed .encyclopedia-section-grid {
+  display: none;
+}
+
+.encyclopedia-section.collapsed .encyclopedia-section-arrow {
+  transform: rotate(-90deg);
+}
+
+.encyclopedia-section-arrow {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}

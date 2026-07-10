@@ -175,6 +175,9 @@ let senseiPillars = [];
 let senseiEffects = [];
 let mouseClickEffects = [];
 let senseiDebuffZones = [];
+let slimeClouds = [];
+let slimeRainClouds = [];
+let slimeRainParticles = [];
 let chests = [];
 let drops = [];
 let bags = [];
@@ -608,7 +611,7 @@ function setDevStatsToCompletionValues() {
     totalSlimeKills: 1000,
     totalFireSlimeGiantKills: 100,
     totalFireSlimeSmallKills: 100,
-    totalSlimeGiantKills: 50,
+    totalSlimeGiantKills: 100,
     totalSlimeEliteKills: 50,
     totalChestsOpened: 100,
     totalAlioliPotatoesEaten: 10,
@@ -621,7 +624,12 @@ function setDevStatsToCompletionValues() {
     totalWatermelonTurretKills: 100,
     totalSenseisDefeated: 5,
     totalPrisonersRescued: 15,
-    totalGoldSlimeKills: 10,
+    totalGoldSlimeKills: 25,
+    totalGoldSlimeGiantKills: 25,
+    totalPinkSlimeKills: 100,
+    totalPinkSlimeGiantKills: 100,
+    totalCloudSlimeGiantKills: 100,
+    totalCloudSlimeKills: 100,
     totalChickensSummoned: 50
   };
   for (const [key, value] of Object.entries(values)) {
@@ -828,6 +836,9 @@ function startGame() {
   senseiSlashes = [];
   senseiEffects = [];
   senseiDebuffZones = [];
+  slimeClouds = [];
+  slimeRainClouds = [];
+  slimeRainParticles = [];
   senseiSpawnTimer = 60;
   prisonerCageSpawnTimer = 90;
   rhyhornSpawnTimer = 300;
@@ -1904,6 +1915,177 @@ function updatePlayer(dt) {
   }
 }
 
+
+function isSlimeEntity(entity) {
+  return entity?.tags?.includes("slime") || String(entity?.id || "").toLowerCase().includes("slime");
+}
+
+function getEnemyStatMultiplier(enemy, stat) {
+  let multiplier = 1;
+  if (hordeActive) {
+    if (stat === "speed") multiplier *= 1.30;
+    if (stat === "damage") multiplier *= 1.25;
+  }
+  if (enemy?.slimeRainBoostTimer > 0 && isSlimeEntity(enemy)) {
+    if (stat === "speed") multiplier *= 1.35;
+    if (stat === "damage") multiplier *= 1.35;
+  }
+  return multiplier;
+}
+
+function updateCloudSlime(enemy, dt, target) {
+  target = target || player;
+  enemy.cloudTimer = (enemy.cloudTimer ?? Math.random() * (enemy.cloudCooldown || 4)) - dt;
+  enemy.rainTimer = (enemy.rainTimer ?? 4 + Math.random() * (enemy.rainCooldown || 9)) - dt;
+  enemy.orbitAngle = (enemy.orbitAngle ?? Math.atan2(enemy.y - target.y, enemy.x - target.x)) + dt * 0.9;
+
+  const preferred = enemy.orbitDistance || 300;
+  const angleToEnemy = Math.atan2(enemy.y - target.y, enemy.x - target.x);
+  const desiredX = target.x + Math.cos(enemy.orbitAngle) * preferred;
+  const desiredY = target.y + Math.sin(enemy.orbitAngle) * preferred;
+  const dx = desiredX - enemy.x;
+  const dy = desiredY - enemy.y;
+  const dist = Math.hypot(dx, dy) || 1;
+  const speed = enemy.speed * getEnemyStatMultiplier(enemy, "speed");
+  enemy.x += (dx / dist) * speed * dt;
+  enemy.y += (dy / dist) * speed * dt;
+  enemy.visualMoving = true;
+  enemy.facing = dx < 0 ? "left" : "right";
+
+  if (enemy.cloudTimer <= 0) {
+    spawnSlimeCloud(enemy, angleToEnemy);
+    enemy.cloudTimer = enemy.cloudCooldown || 4;
+  }
+
+  if (enemy.attacks?.includes("slimeRain") && enemy.rainTimer <= 0) {
+    spawnSlimeRainCloud(enemy);
+    enemy.rainTimer = enemy.rainCooldown || 9;
+  }
+}
+
+function spawnSlimeCloud(enemy, angleToPlayer) {
+  const distanceFromEnemy = enemy.size * 0.45 + 34;
+
+  // La nube defensiva usa dos sprites: horizontal 64x40 y vertical 40x64.
+  // Si el jugador/enemigo están más separados en X, ponemos muro vertical;
+  // si están más separados en Y, ponemos muro horizontal. Así bloquea mejor sin rotar píxeles.
+  const horizontalSeparation = Math.abs(Math.cos(angleToPlayer));
+  const verticalSeparation = Math.abs(Math.sin(angleToPlayer));
+  const useVerticalWall = horizontalSeparation > verticalSeparation;
+
+  slimeClouds.push({
+    id: "slimeCloud",
+    x: enemy.x + Math.cos(angleToPlayer) * distanceFromEnemy,
+    y: enemy.y + Math.sin(angleToPlayer) * distanceFromEnemy,
+    width: useVerticalWall ? 40 : 64,
+    height: useVerticalWall ? 64 : 40,
+    size: 64,
+    collision: 34,
+    lifeTime: 5.5,
+    orientation: useVerticalWall ? "vertical" : "horizontal",
+    sprite: useVerticalWall ? (Assets.effects.cloudVertical || Assets.effects.cloud) : Assets.effects.cloud
+  });
+}
+
+function spawnSlimeRainCloud(enemy) {
+  slimeRainClouds.push({
+    id: "slimeRainCloud",
+    x: enemy.x,
+    y: enemy.y,
+    width: 64,
+    height: 40,
+    size: 64,
+    radius: 120,
+    particleTimer: 0,
+    lifeTime: enemy.rainDuration || 4,
+    sprite: Assets.effects.cloudRain
+  });
+}
+
+function updateSlimeClouds(dt) {
+  for (const cloud of slimeClouds) {
+    cloud.lifeTime -= dt;
+  }
+  slimeClouds = slimeClouds.filter(cloud => cloud.lifeTime > 0);
+}
+
+function updateSlimeRainClouds(dt) {
+  for (const cloud of slimeRainClouds) {
+    cloud.lifeTime -= dt;
+    cloud.particleTimer -= dt;
+    if (cloud.particleTimer <= 0) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * cloud.radius;
+      slimeRainParticles.push({
+        x: cloud.x + Math.cos(angle) * radius,
+        y: cloud.y + Math.sin(angle) * radius,
+        size: 16,
+        collision: 8,
+        lifeTime: 0.75,
+        sprite: Assets.effects.slimeRainParticle
+      });
+      cloud.particleTimer = 0.08;
+    }
+
+    for (const enemy of enemies) {
+      if (enemy.dead || !isSlimeEntity(enemy)) continue;
+      if (distance(enemy, cloud) < enemy.collision + cloud.radius) {
+        enemy.slimeRainBoostTimer = Math.max(enemy.slimeRainBoostTimer || 0, 1.6);
+      }
+    }
+  }
+
+  for (const particle of slimeRainParticles) {
+    particle.lifeTime -= dt;
+  }
+
+  slimeRainClouds = slimeRainClouds.filter(cloud => cloud.lifeTime > 0);
+  slimeRainParticles = slimeRainParticles.filter(particle => particle.lifeTime > 0);
+}
+
+function updateSlimeRainBoosts(dt) {
+  for (const enemy of enemies) {
+    if (enemy.slimeRainBoostTimer > 0) {
+      enemy.slimeRainBoostTimer -= dt;
+    }
+  }
+}
+
+function isProjectileBlockedBySlimeCloud(projectile) {
+  if (projectile?.pierceLeft > 0 || projectile?.piercing || projectile?.penetrating) return false;
+  return slimeClouds.some(cloud => distance(projectile, cloud) < (projectile.collision || 6) + cloud.collision);
+}
+
+function drawSlimeClouds() {
+  for (const cloud of slimeClouds) {
+    drawWorldObject({ ...cloud, alpha: Math.min(1, cloud.lifeTime) });
+  }
+  for (const cloud of slimeRainClouds) {
+    drawWorldObject(cloud);
+  }
+  for (const particle of slimeRainParticles) {
+    drawWorldObject(particle);
+  }
+}
+
+function drawAura(entity, color) {
+  const sx = worldToScreenX(entity.x);
+  const sy = worldToScreenY(entity.y);
+  ctx.save();
+  ctx.globalAlpha = 0.35;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(sx, sy, entity.size * 0.52 + Math.sin(performance.now() / 120) * 3, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 0.15;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(sx, sy, entity.size * 0.48, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 function updateEnemies(dt) {
   for (const enemy of enemies) {
       if (enemy.isAlly) {
@@ -1915,6 +2097,11 @@ function updateEnemies(dt) {
   updateGoldSlime(enemy, dt);
   continue;
 }
+
+    if (enemy.id === "cloudSlime" || enemy.id === "cloudSlimeGiant") {
+      updateCloudSlime(enemy, dt, player);
+      continue;
+    }
     const chickenTarget = getNearestChickenForEnemy(enemy);
 const mainTarget = chickenTarget || player;
     enemy.currentTarget = mainTarget;
@@ -1953,8 +2140,8 @@ const dist = Math.hypot(dx, dy) || 1;
     continue;
 }
 
-    const speed = enemy.speed * (hordeActive ? 1.30 : 1);
-    const contactDamage = (enemy.isBoss ? 20 : 10) * (hordeActive ? 1.25 : 1);
+    const speed = enemy.speed * getEnemyStatMultiplier(enemy, "speed");
+    const contactDamage = enemy.noContactDamage ? 0 : (enemy.isBoss ? 20 : 10) * getEnemyStatMultiplier(enemy, "damage");
 
     if (enemy.attacks.includes("rockLine")) {
   enemy.rockLineTimer = enemy.rockLineTimer ?? 2.5;
@@ -2041,8 +2228,8 @@ enemy.chargeTargetY = mainTarget.y;
         const targetY = enemy.chargeTargetY ?? player.y;
         const angle = Math.atan2(targetY - enemy.y, targetX - enemy.x);
 
-        enemy.jumpVx = Math.cos(angle) * enemy.jumpSpeed * (hordeActive ? 1.20 : 1);
-        enemy.jumpVy = Math.sin(angle) * enemy.jumpSpeed * (hordeActive ? 1.20 : 1);
+        enemy.jumpVx = Math.cos(angle) * enemy.jumpSpeed * (hordeActive ? 1.20 : 1) * (enemy.slimeRainBoostTimer > 0 ? 1.15 : 1);
+        enemy.jumpVy = Math.sin(angle) * enemy.jumpSpeed * (hordeActive ? 1.20 : 1) * (enemy.slimeRainBoostTimer > 0 ? 1.15 : 1);
         enemy.jumpTimer = enemy.jumpDuration;
         enemy.state = "jump";
       }
@@ -2108,6 +2295,7 @@ if (roosterTarget && enemy.attackCooldown <= 0) {
   continue;
 }
     if (
+      contactDamage > 0 &&
       distance(player, enemy) < player.collision + enemy.collision &&
       player.invulnerableTimer <= 0
     ) {
@@ -2726,7 +2914,8 @@ function updateAllyProjectiles(dt) {
     p.lifeTime -= dt;
 
     if (isCollidingWithObstacle(p) ||
-  isCollidingWithSenseiPillar(p)
+  isCollidingWithSenseiPillar(p) ||
+  isProjectileBlockedBySlimeCloud(p)
 ) {
   p.lifeTime = 0;
 }
@@ -3178,8 +3367,8 @@ function updateAlly(enemy, dt) {
   if (enemy.state === "chase") {
     moveWithObstacleCollision(
       enemy,
-      (dx / dist) * enemy.speed * dt,
-      (dy / dist) * enemy.speed * dt
+      (dx / dist) * enemy.speed * getEnemyStatMultiplier(enemy, "speed") * dt,
+      (dy / dist) * enemy.speed * getEnemyStatMultiplier(enemy, "speed") * dt
     );
 
     enemy.attackCooldown -= dt;
@@ -3202,7 +3391,7 @@ function updateAlly(enemy, dt) {
     ) {
       damageEnemy(
   target,
-  Math.ceil(6 * player.allyDamageMultiplier),
+  Math.ceil(6 * player.allyDamageMultiplier * getEnemyStatMultiplier(enemy, "damage")),
   "allyMelee",
   ["ally", "melee"]
 );
@@ -3217,8 +3406,8 @@ function updateAlly(enemy, dt) {
         enemy.chargeTargetX - enemy.x
       );
 
-      enemy.jumpVx = Math.cos(angle) * enemy.jumpSpeed;
-      enemy.jumpVy = Math.sin(angle) * enemy.jumpSpeed;
+      enemy.jumpVx = Math.cos(angle) * enemy.jumpSpeed * (enemy.slimeRainBoostTimer > 0 ? 1.15 : 1);
+      enemy.jumpVy = Math.sin(angle) * enemy.jumpSpeed * (enemy.slimeRainBoostTimer > 0 ? 1.15 : 1);
       enemy.jumpTimer = enemy.jumpDuration;
       enemy.state = "jump";
     }
@@ -3238,7 +3427,7 @@ function updateAlly(enemy, dt) {
     if (distance(enemy, target) < enemy.collision + target.collision) {
       damageEnemy(
   target,
-  Math.ceil(10 * player.allyDamageMultiplier),
+  Math.ceil(10 * player.allyDamageMultiplier * getEnemyStatMultiplier(enemy, "damage")),
   "allyCharge",
   ["ally", "charge"]
 );
@@ -3294,6 +3483,17 @@ if (enemy.id === "slime") {
 
   if (enemy.id === "pinkSlimeGiant") {
     saveData.stats.totalPinkSlimeGiantKills++;
+  }
+
+  if (enemy.id === "cloudSlime") {
+    saveData.stats.totalCloudSlimeKills++;
+  }
+
+  if (enemy.id === "cloudSlimeGiant") {
+    saveData.stats.totalCloudSlimeGiantKills++;
+    if (player.scaryMedkitActive && Math.random() < 0.25) {
+      spawnItemDrop("scaryMedkit", enemy.x + 35, enemy.y);
+    }
   }
 
   if (enemy.senseiId) {
@@ -4316,6 +4516,8 @@ function updateChickens(dt) {
     return;
   }
 
+  drawSlimeClouds();
+
   for (const chicken of chickens) {
     updateChickenWander(chicken, dt);
   }
@@ -4754,6 +4956,8 @@ function getNearestChickenForEnemy(enemy) {
   let nearest = null;
   let nearestDist = Infinity;
 
+  drawSlimeClouds();
+
   for (const chicken of chickens) {
     if (chicken.dead) continue;
 
@@ -4778,7 +4982,8 @@ function updateProjectiles(dt) {
     p.lifeTime -= dt;
 
     if (isCollidingWithObstacle(p) ||
-  isCollidingWithSenseiPillar(p)
+  isCollidingWithSenseiPillar(p) ||
+  isProjectileBlockedBySlimeCloud(p)
 ) {
   p.lifeTime = 0;
 }
@@ -5407,6 +5612,8 @@ for (const prisoner of rescuedPrisoners) {
   for (const turret of watermelonTurrets) {
     drawWorldObject(turret);
 }
+  drawSlimeClouds();
+
   for (const chicken of chickens) {
   drawSprite(chicken.sprite, chicken.x, chicken.y, chicken.size, chicken.facing || "right", 1, { sway: isEntityMoving(chicken), amount: 0.65, speed: 140 });
   drawEntityLifeBar(chicken);
@@ -5514,7 +5721,8 @@ drawRockSpikes();
   drawChargeWarning(enemy);
   drawWatermelonVoltorbWarning(enemy);
   drawSprite(enemy.sprite, enemy.x, enemy.y, enemy.size, enemy.facing, alpha, { sway: true, amount: enemy.isAlly ? 0.7 : 0.45, speed: enemy.isAlly ? 135 : 155 });
-  drawHordeBuffParticles(enemy);
+  if (hordeActive) drawAura(enemy, "#ff4444");
+  if (enemy.slimeRainBoostTimer > 0) drawAura(enemy, "#44ff66");
   drawBurnParticles(enemy);
 
     if (enemy.isAlly) {
@@ -5771,6 +5979,9 @@ function update(dt) {
   updateWeapons(dt);
   updateEnemies(dt);
   updateBurns(dt);
+  updateSlimeRainBoosts(dt);
+  updateSlimeClouds(dt);
+  updateSlimeRainClouds(dt);
   updateEnemyProjectiles(dt);
   updateAllyProjectiles(dt);
   updateRockSpikes(dt);
