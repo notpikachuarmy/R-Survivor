@@ -194,18 +194,6 @@ oranBerry: {
   ]
 },
 
-laprasFloat: {
-  id: "laprasFloat",
-  name: "Flotador Lapras",
-  category: "Item de run",
-  sprite: () => Assets.items.laprasFloat,
-  description: "Permite caminar sobre las casillas de agua del río durante la run.",
-  details: [
-    "Se obtiene en cofres negros tras desbloquear su logro.",
-    "El efecto termina al acabar la partida."
-  ]
-},
-
 runningShoes: {
   id: "runningShoes",
   name: "Deportivas",
@@ -300,6 +288,15 @@ greenPlort: {
     "Los enemigos con tag slime las priorizan como objetivo.",
     "El Distintivo de Líder aumenta su vida y rango de atracción.",
     "Tiene mejoras de vida, rango de atracción, area de aparición y de salir gigante.",
+  ]
+},
+  laprasFloat: {
+  id: "laprasFloat",
+  name: "Flotador Lapras",
+  category: "Item de run",
+  sprite: () => Assets.items.laprasFloat,
+  description: "Permite caminar sobre las casillas de agua del río durante la run.",
+  details: [
   ]
 },
   },
