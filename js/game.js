@@ -4221,7 +4221,8 @@ function createMouseCursor() {
     clickTimer: 0,
 
     sprite: Assets.projectiles.mouseCursor,
-    facing: "right"
+    facing: "right",
+    fixedSpriteDirection: true
   };
 }
 
@@ -5254,6 +5255,18 @@ function drawSprite(img, x, y, size, facing = "right", alpha = 1, visual = null)
   ctx.restore();
 }
 
+function drawFixedSprite(img, x, y, size, alpha = 1) {
+  // Para sprites que NO deben girar ni hacer efecto espejo nunca.
+  // Usado por el arma Cursor para evitar parpadeos visuales al cambiar de objetivo.
+  const sx = Math.round(worldToScreenX(x));
+  const sy = Math.round(worldToScreenY(y));
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(img, sx - size / 2, sy - size / 2, size, size);
+  ctx.restore();
+}
+
 function drawRotatedSprite(img, x, y, width, height, angle, alpha = 1) {
   const sx = worldToScreenX(x);
   const sy = worldToScreenY(y);
@@ -5543,15 +5556,6 @@ function render() {
   for (const pillar of senseiPillars) {
   drawWorldObject(pillar);
 }
-  for (const cursor of mouseCursors) {
-  drawSprite(
-    cursor.sprite,
-    cursor.x,
-    cursor.y,
-    cursor.size,
-    "right"
-  );
-}
   for (const effect of mouseClickEffects) {
   const sx = worldToScreenX(effect.x);
   const sy = worldToScreenY(effect.y);
@@ -5756,6 +5760,11 @@ drawRockSpikes();
       drawAllyHearts(enemy);
     }
 }
+
+  // El cursor se dibuja encima de los enemigos y siempre con la misma orientación.
+  for (const cursor of mouseCursors) {
+    drawFixedSprite(cursor.sprite, cursor.x, cursor.y, cursor.size);
+  }
 
   const playerAlpha = player.invulnerableTimer > 0
     ? 0.5 + Math.sin(performance.now() / 60) * 0.3
