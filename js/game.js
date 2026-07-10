@@ -1635,6 +1635,34 @@ function spawnRandomEnemy() {
     return;
   }
 
+  // Importante: el enemigo debe elegirse según el bioma donde APARECE,
+  // no según el bioma donde está pisando el jugador.
+  // Así, si el jugador está en planicie pero el punto de spawn cae en río,
+  // aparecerán slimes nube; y si cae en bosque, saldrá la pool del bosque.
+  const attempts = 24;
+
+  for (let i = 0; i < attempts; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const distanceFromPlayer = 700 + Math.random() * 250;
+    const x = player.x + Math.cos(angle) * distanceFromPlayer;
+    const y = player.y + Math.sin(angle) * distanceFromPlayer;
+    const spawnBiome = getBiomeAt?.(x, y) || null;
+    const biomeEnemy = pickBiomeEnemyId(x, y, gameTime, saveData) || "slime";
+
+    if (!canSpawnEnemy(biomeEnemy, spawnBiome?.id || null)) continue;
+
+    const enemy = createEnemy(biomeEnemy, x, y);
+    if (!enemy) continue;
+
+    if (!isCollidingWithObstacle(enemy)) {
+      enemy.spawnBiomeId = spawnBiome?.id || "plains";
+      enemies.push(enemy);
+      unlockEncyclopedia("enemies", enemy.id);
+      return;
+    }
+  }
+
+  // Fallback por si todos los intentos caen en zonas no válidas.
   const currentBiome = getBiomeAt?.(player.x, player.y) || null;
   const biomeEnemy = pickBiomeEnemyId(player.x, player.y, gameTime, saveData);
   spawnEnemy(biomeEnemy || "slime", currentBiome?.id || null);
