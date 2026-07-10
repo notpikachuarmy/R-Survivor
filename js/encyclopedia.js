@@ -458,7 +458,7 @@ greenPlort: {
     cloudSlimeGiant: {
   id: "cloudSlimeGiant",
   name: "Slime Nube Gigante",
-  category: "Enemigo",
+  category: "Jefe",
   sprite: () => Assets.enemies.cloudSlimeGiant,
   description: "Slime resistente que rodea al jugador creando muros de nube y lluvia de baba para potenciar a otros slimes.",
   details: [
@@ -466,9 +466,9 @@ greenPlort: {
     "60 XP",
     "Velocidad: 90",
     "Ataque: Muro de nube",
+    "Tiene un 10% de probabilidad de soltar un cofre al morir.",
     "Puede atravesar obstáculos.",
-    "No hace daño por contacto.",
-    "No es capturable."
+    "No hace daño por contacto."
   ]
 },
     cloudSlime: {
@@ -483,8 +483,7 @@ greenPlort: {
     "Velocidad: 105",
     "Ataque: Muro de nube",
     "Puede atravesar obstáculos.",
-    "No hace daño por contacto.",
-    "No es capturable."
+    "No hace daño por contacto."
   ]
 },
     mimic: {

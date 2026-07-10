@@ -450,6 +450,9 @@ kill500Slimes: {
 };
 
 function checkAchievements() {
+  if (typeof player !== "undefined" && player?.level) {
+    saveData.stats.maxLevelReached = Math.max(saveData.stats.maxLevelReached || 1, player.level);
+  }
   for (const achievement of Object.values(AchievementDatabase)) {
     if (saveData.achievements[achievement.id]) continue;
 

@@ -745,3 +745,38 @@ body {
   display: inline-block;
   transition: transform 0.15s ease;
 }
+
+.achievements-toolbar {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.achievement-progress {
+  margin: 12px 0;
+}
+
+.achievement-progress strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.achievement-progress-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0;
+}
+
+.achievement-progress-row span {
+  font-weight: bold;
+}
+
+.achievement-progress-row em {
+  font-style: normal;
+  opacity: 0.85;
+  font-size: 0.9em;
+}

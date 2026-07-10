@@ -1988,10 +1988,14 @@ function spawnSlimeCloud(enemy, angleToPlayer) {
 }
 
 function spawnSlimeRainCloud(enemy) {
+  const moveAngle = Math.random() * Math.PI * 2;
+  const driftSpeed = 22 + Math.random() * 20;
   slimeRainClouds.push({
     id: "slimeRainCloud",
     x: enemy.x,
     y: enemy.y,
+    vx: Math.cos(moveAngle) * driftSpeed,
+    vy: Math.sin(moveAngle) * driftSpeed,
     width: 64,
     height: 40,
     size: 64,
@@ -2012,6 +2016,8 @@ function updateSlimeClouds(dt) {
 function updateSlimeRainClouds(dt) {
   for (const cloud of slimeRainClouds) {
     cloud.lifeTime -= dt;
+    cloud.x += (cloud.vx || 0) * dt;
+    cloud.y += (cloud.vy || 0) * dt;
     cloud.particleTimer -= dt;
     if (cloud.particleTimer <= 0) {
       const angle = Math.random() * Math.PI * 2;
@@ -2027,16 +2033,18 @@ function updateSlimeRainClouds(dt) {
       cloud.particleTimer = 0.08;
     }
 
-    for (const enemy of enemies) {
-      if (enemy.dead || !isSlimeEntity(enemy)) continue;
-      if (distance(enemy, cloud) < enemy.collision + cloud.radius) {
-        enemy.slimeRainBoostTimer = Math.max(enemy.slimeRainBoostTimer || 0, 1.6);
-      }
-    }
   }
 
   for (const particle of slimeRainParticles) {
     particle.lifeTime -= dt;
+    for (const enemy of enemies) {
+      if (enemy.dead || !isSlimeEntity(enemy)) continue;
+      if (distance(enemy, particle) < (enemy.collision || 16) + (particle.collision || 8)) {
+        enemy.slimeRainBoostTimer = Math.max(enemy.slimeRainBoostTimer || 0, 3.5);
+        particle.lifeTime = 0;
+        break;
+      }
+    }
   }
 
   slimeRainClouds = slimeRainClouds.filter(cloud => cloud.lifeTime > 0);
@@ -3491,6 +3499,9 @@ if (enemy.id === "slime") {
 
   if (enemy.id === "cloudSlimeGiant") {
     saveData.stats.totalCloudSlimeGiantKills++;
+    if (Math.random() < (enemy.chestChance || 0.1)) {
+      spawnChest(enemy.x, enemy.y);
+    }
     if (player.scaryMedkitActive && Math.random() < 0.25) {
       spawnItemDrop("scaryMedkit", enemy.x + 35, enemy.y);
     }

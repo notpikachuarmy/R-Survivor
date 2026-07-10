@@ -35,6 +35,7 @@ const DEFAULT_SAVE = {
     totalCloudSlimeKills: 0,
     totalCloudSlimeGiantKills: 0,
     totalChickensSummoned: 0,
+    maxLevelReached: 1,
   },
 
   senseis: {
