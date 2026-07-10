@@ -213,6 +213,7 @@ const BiomeRegistry = {
     id: "plains",
     name: "Planicie",
     bounds: { type: "default" },
+    minimapColor: "rgba(110, 170, 67, 0.28)",
     background: {
       type: "tile",
       asset: () => Assets.biomes.plains.grassTile,
@@ -233,18 +234,106 @@ const BiomeRegistry = {
       { id: "flabebe", weight: 5, minTime: 180, unlockKey: "flabebe" },
       { id: "delibird", weight: 2, minTime: 180, unlockKey: "delibird" }
     ],
-
-    // Objetos propios de Planicie. Cuando se añada desierto/bosque/etc.,
-    // se define aquí su lista y el generador no mezclará assets entre biomas.
     decorations: ["grass1", "grass2", "flower1"],
     obstacles: ["rock", "bush", "tree"],
     decorationAmount: { min: 18, max: 35 },
     obstacleAmount: { min: 5, max: 12 }
+  },
+
+  forest: {
+    id: "forest",
+    name: "Bosque",
+    minimapColor: "rgba(24, 99, 48, 0.34)",
+    background: {
+      type: "tile",
+      asset: () => Assets.biomes.forest.forestTile,
+      tileSize: 64,
+      fallbackColor: "#235f32"
+    },
+    enemyPool: [
+      { id: "slime", weight: 55, minTime: 0 },
+      { id: "slimeGiant", weight: 8, minTime: 45 },
+      { id: "watermelonVoltorb", weight: 9, minTime: 60 },
+      { id: "watermelonElectrode", weight: 4, minTime: 90 }
+    ],
+    decorations: ["grass1", "grass2", "flower1", "flowerBlue", "flowerRed", "flowerYellow", "bushSmall"],
+    obstacles: ["treeForest1", "treeForest2", "treeForest3", "bush", "rock"],
+    decorationAmount: { min: 28, max: 52 },
+    obstacleAmount: { min: 12, max: 24 }
+  },
+
+  river: {
+    id: "river",
+    name: "Río",
+    minimapColor: "rgba(48, 122, 221, 0.32)",
+    background: {
+      type: "river",
+      groundAsset: () => Assets.biomes.river.riverTile,
+      tileSize: 64,
+      fallbackColor: "#c8a060"
+    },
+    enemyPool: [
+      { id: "cloudSlime", weight: 22, minTime: 0 },
+      { id: "cloudSlimeGiant", weight: 6, minTime: 45 }
+    ],
+    decorations: [],
+    obstacles: [],
+    decorationAmount: { min: 0, max: 0 },
+    obstacleAmount: { min: 0, max: 0 }
   }
 };
 
+const BIOME_TILE_SIZE = 64;
+const RIVER_HALF_WIDTH = 132;
+const RIVER_BANK_WIDTH = 92;
+const FOREST_CELL_SIZE = 2300;
+
+function getRiverCenterY(x) {
+  return 900 + Math.sin(x / 760) * 360 + Math.sin(x / 1730 + 1.7) * 210;
+}
+
+function getRiverDistance(x, y) {
+  return Math.abs(y - getRiverCenterY(x));
+}
+
+function isRiverWaterAt(x, y) {
+  return getRiverDistance(x, y) <= RIVER_HALF_WIDTH;
+}
+
+function isRiverBiomeAt(x, y) {
+  return getRiverDistance(x, y) <= RIVER_HALF_WIDTH + RIVER_BANK_WIDTH;
+}
+
+function hashBiomeCell(cellX, cellY) {
+  let value = Math.imul(cellX, 374761393) ^ Math.imul(cellY, 668265263);
+  value = (value ^ (value >>> 13)) >>> 0;
+  value = Math.imul(value, 1274126177) >>> 0;
+  return ((value ^ (value >>> 16)) >>> 0) / 4294967296;
+}
+
+function isForestBiomeAt(x, y) {
+  const cellX = Math.floor((x + 900) / FOREST_CELL_SIZE);
+  const cellY = Math.floor((y - 500) / FOREST_CELL_SIZE);
+  const localX = ((x + 900) % FOREST_CELL_SIZE + FOREST_CELL_SIZE) % FOREST_CELL_SIZE;
+  const localY = ((y - 500) % FOREST_CELL_SIZE + FOREST_CELL_SIZE) % FOREST_CELL_SIZE;
+  const patchRoll = hashBiomeCell(cellX, cellY);
+
+  if (patchRoll < 0.42) return false;
+
+  const centerX = FOREST_CELL_SIZE * (0.35 + hashBiomeCell(cellX + 17, cellY - 11) * 0.3);
+  const centerY = FOREST_CELL_SIZE * (0.35 + hashBiomeCell(cellX - 29, cellY + 7) * 0.3);
+  const radiusX = FOREST_CELL_SIZE * (0.30 + hashBiomeCell(cellX + 5, cellY + 19) * 0.16);
+  const radiusY = FOREST_CELL_SIZE * (0.30 + hashBiomeCell(cellX - 13, cellY - 3) * 0.16);
+  const dx = (localX - centerX) / radiusX;
+  const dy = (localY - centerY) / radiusY;
+
+  return dx * dx + dy * dy <= 1;
+}
+
 function getBiomeAt(x, y) {
-  // Preparado para crecer: forest/cave/desert pueden tener bounds propios.
+  // Prioridad: el río corta cualquier bioma porque será una barrera natural.
+  if (isRiverBiomeAt(x, y)) return BiomeRegistry.river;
+  if (isForestBiomeAt(x, y)) return BiomeRegistry.forest;
   return BiomeRegistry.plains;
 }
 
@@ -277,7 +366,7 @@ function getBiomeEnemyPool(biome, time, save = saveData) {
     if (time < (entry.minTime || 0)) return false;
     if (entry.unlockKey && !save?.unlocks?.[entry.unlockKey]) return false;
     if (entry.unique && enemies?.some(enemy => enemy.id === entry.id)) return false;
-    if (typeof canSpawnEnemy === "function" && !canSpawnEnemy(entry.id)) return false;
+    if (typeof canSpawnEnemy === "function" && !canSpawnEnemy(entry.id, biome?.id)) return false;
     return true;
   });
 }

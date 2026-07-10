@@ -27,6 +27,30 @@ const WORLD_OBJECTS = {
       width: 64,
       height: 96,
       collision: 18
+    },
+    treeForest1: {
+      id: "treeForest1",
+      biome: "forest",
+      sprite: () => Assets.obstacles.treeForest1,
+      width: 64,
+      height: 96,
+      collision: 20
+    },
+    treeForest2: {
+      id: "treeForest2",
+      biome: "forest",
+      sprite: () => Assets.obstacles.treeForest2,
+      width: 64,
+      height: 96,
+      collision: 20
+    },
+    treeForest3: {
+      id: "treeForest3",
+      biome: "forest",
+      sprite: () => Assets.obstacles.treeForest3,
+      width: 64,
+      height: 96,
+      collision: 20
     }
   },
 
@@ -49,6 +73,34 @@ const WORLD_OBJECTS = {
       id: "flower1",
       biome: "plains",
       sprite: () => Assets.decorations.flower1,
+      width: 32,
+      height: 32
+    },
+    flowerBlue: {
+      id: "flowerBlue",
+      biome: "forest",
+      sprite: () => Assets.decorations.flowerBlue,
+      width: 32,
+      height: 32
+    },
+    flowerRed: {
+      id: "flowerRed",
+      biome: "forest",
+      sprite: () => Assets.decorations.flowerRed,
+      width: 32,
+      height: 32
+    },
+    flowerYellow: {
+      id: "flowerYellow",
+      biome: "forest",
+      sprite: () => Assets.decorations.flowerYellow,
+      width: 32,
+      height: 32
+    },
+    bushSmall: {
+      id: "bushSmall",
+      biome: "forest",
+      sprite: () => Assets.decorations.bushSmall,
       width: 32,
       height: 32
     }
@@ -242,10 +294,28 @@ function isCollidingWithObstacle(entity) {
   return false;
 }
 
+function isCollidingWithRiverWater(entity) {
+  if (entity !== player) return false;
+  if (entity.canWalkOnRiver || entity.canCrossRiver) return false;
+  if (typeof isRiverWaterAt !== "function") return false;
+
+  const radius = entity.collision || entity.size * 0.35 || 14;
+  const checks = [
+    [entity.x, entity.y],
+    [entity.x + radius, entity.y],
+    [entity.x - radius, entity.y],
+    [entity.x, entity.y + radius],
+    [entity.x, entity.y - radius]
+  ];
+
+  return checks.some(([x, y]) => isRiverWaterAt(x, y));
+}
+
 function isBlockedByWorld(entity) {
   return (
     isCollidingWithObstacle(entity) ||
-    isCollidingWithSenseiPillar(entity)
+    isCollidingWithSenseiPillar(entity) ||
+    isCollidingWithRiverWater(entity)
   );
 }
 

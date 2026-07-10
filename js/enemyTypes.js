@@ -839,7 +839,15 @@ function createEnemy(typeId, x, y) {
   };
 }
 
-function canSpawnEnemy(typeId) {
+function canSpawnEnemy(typeId, biomeId = null) {
+  if (biomeId === "forest" && ["slime", "slimeGiant", "watermelonVoltorb", "watermelonElectrode"].includes(typeId)) {
+    return true;
+  }
+
+  if (biomeId === "river" && ["cloudSlime", "cloudSlimeGiant"].includes(typeId)) {
+    return true;
+  }
+
   if (typeId === "fireSlimeGiant") {
     return saveData.unlocks.fireSlimeGiant === true;
   }

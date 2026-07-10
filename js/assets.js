@@ -83,18 +83,42 @@ const Assets = {
   obstacles: {
     rock: new Image(),
     tree: new Image(),
-    bush: new Image()
+    bush: new Image(),
+    treeForest1: new Image(),
+    treeForest2: new Image(),
+    treeForest3: new Image()
   },
 
   decorations: {
     grass1: new Image(),
     grass2: new Image(),
-    flower1: new Image()
+    flower1: new Image(),
+    flowerBlue: new Image(),
+    flowerRed: new Image(),
+    flowerYellow: new Image(),
+    bushSmall: new Image()
   },
 
   biomes: {
     plains: {
       grassTile: new Image()
+    },
+    forest: {
+      forestTile: new Image()
+    },
+    river: {
+      riverTile: new Image(),
+      riverCenter: new Image(),
+      riverN: new Image(),
+      riverS: new Image(),
+      riverE: new Image(),
+      riverW: new Image(),
+      riverNE: new Image(),
+      riverNW: new Image(),
+      riverSE: new Image(),
+      riverSW: new Image(),
+      waterHorizontal: new Image(),
+      waterVertical: new Image()
     }
   },
 
@@ -214,12 +238,32 @@ Assets.items.rooster.src = "assets/items/rooster.png";
 Assets.obstacles.rock.src = "assets/obstacles/rock.png";
 Assets.obstacles.tree.src = "assets/obstacles/tree.png";
 Assets.obstacles.bush.src = "assets/obstacles/bush.png";
+Assets.obstacles.treeForest1.src = "assets/obstacles/tree_forest_1.png";
+Assets.obstacles.treeForest2.src = "assets/obstacles/tree_forest_2.png";
+Assets.obstacles.treeForest3.src = "assets/obstacles/tree_forest_3.png";
 
 Assets.decorations.grass1.src = "assets/decorations/grass1.png";
 Assets.decorations.grass2.src = "assets/decorations/grass2.png";
 Assets.decorations.flower1.src = "assets/decorations/flower1.png";
+Assets.decorations.flowerBlue.src = "assets/decorations/flower_blue.png";
+Assets.decorations.flowerRed.src = "assets/decorations/flower_red.png";
+Assets.decorations.flowerYellow.src = "assets/decorations/flower_yellow.png";
+Assets.decorations.bushSmall.src = "assets/decorations/bush_small.png";
 
 Assets.biomes.plains.grassTile.src = "assets/biomes/plains/grass_tile.png";
+Assets.biomes.forest.forestTile.src = "assets/biomes/forest/forest_tile.png";
+Assets.biomes.river.riverTile.src = "assets/biomes/river/riverTile.png";
+Assets.biomes.river.riverCenter.src = "assets/biomes/river/water_center.png";
+Assets.biomes.river.riverN.src = "assets/biomes/river/riverN.png";
+Assets.biomes.river.riverS.src = "assets/biomes/river/riverS.png";
+Assets.biomes.river.riverE.src = "assets/biomes/river/riverE.png";
+Assets.biomes.river.riverW.src = "assets/biomes/river/riverW.png";
+Assets.biomes.river.riverNE.src = "assets/biomes/river/riverNE.png";
+Assets.biomes.river.riverNW.src = "assets/biomes/river/riverNW.png";
+Assets.biomes.river.riverSE.src = "assets/biomes/river/riverSE.png";
+Assets.biomes.river.riverSW.src = "assets/biomes/river/riverSW.png";
+Assets.biomes.river.waterHorizontal.src = "assets/biomes/river/water_horizontal.png";
+Assets.biomes.river.waterVertical.src = "assets/biomes/river/water_vertical.png";
 
 Assets.effects.explosion.src = "assets/effects/explosion.png";
 Assets.effects.electricBite.src = "assets/effects/electricBite.png";

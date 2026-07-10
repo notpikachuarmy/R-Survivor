@@ -1518,8 +1518,8 @@ const PrisonerDatabase = [
   }
 ];
 
-function spawnEnemy(typeId = "slime") {
-  if (!canSpawnEnemy(typeId)) return false;
+function spawnEnemy(typeId = "slime", biomeId = null) {
+  if (!canSpawnEnemy(typeId, biomeId)) return false;
 
   const angle = Math.random() * Math.PI * 2;
   const distanceFromPlayer = 700 + Math.random() * 250;
@@ -1635,8 +1635,9 @@ function spawnRandomEnemy() {
     return;
   }
 
+  const currentBiome = getBiomeAt?.(player.x, player.y) || null;
   const biomeEnemy = pickBiomeEnemyId(player.x, player.y, gameTime, saveData);
-  spawnEnemy(biomeEnemy || "slime");
+  spawnEnemy(biomeEnemy || "slime", currentBiome?.id || null);
 }
 
 function getAvailableSenseiIds() {
@@ -5208,25 +5209,55 @@ function killVisibleEnemies() {
 }
 
 
-function drawBiomeBackground() {
-  const biome = getBiomeAt?.(camera.x, camera.y) || BiomeRegistry?.plains;
+function getBiomeGroundImage(biome) {
   const background = biome?.background;
+  if (!background) return null;
 
-  if (!background || background.type !== "tile") {
-    ctx.fillStyle = "#06120a";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    return;
+  if (background.type === "river") {
+    return typeof background.groundAsset === "function" ? background.groundAsset() : null;
   }
 
-  const tileSize = background.tileSize || 64;
-  const image = typeof background.asset === "function" ? background.asset() : null;
+  return typeof background.asset === "function" ? background.asset() : null;
+}
 
-  if (!image || !image.complete || image.naturalWidth === 0) {
-    ctx.fillStyle = background.fallbackColor || "#6eaa43";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    return;
+function drawBiomeGroundFallback(biome, sx, sy, tileSize) {
+  ctx.fillStyle = biome?.background?.fallbackColor || "#6eaa43";
+  ctx.fillRect(sx, sy, tileSize, tileSize);
+}
+
+function drawTileImageOrFallback(image, biome, sx, sy, tileSize) {
+  if (image && image.complete && image.naturalWidth > 0) {
+    ctx.drawImage(image, sx, sy, tileSize, tileSize);
+  } else {
+    drawBiomeGroundFallback(biome, sx, sy, tileSize);
   }
+}
 
+function getRiverWaterTileImage(worldX, worldY, tileSize) {
+  const sampleX = worldX + tileSize / 2;
+  const sampleY = worldY + tileSize / 2;
+  const north = isRiverWaterAt(sampleX, sampleY - tileSize);
+  const south = isRiverWaterAt(sampleX, sampleY + tileSize);
+  const east = isRiverWaterAt(sampleX + tileSize, sampleY);
+  const west = isRiverWaterAt(sampleX - tileSize, sampleY);
+  const river = Assets.biomes.river;
+
+  if (!north && !west) return river.riverNW;
+  if (!north && !east) return river.riverNE;
+  if (!south && !west) return river.riverSW;
+  if (!south && !east) return river.riverSE;
+  if (!north) return river.riverN;
+  if (!south) return river.riverS;
+  if (!west) return river.riverW;
+  if (!east) return river.riverE;
+
+  // Interior: alterna sutilmente para que el agua no parezca un bloque plano.
+  const horizontalBias = Math.abs(getRiverCenterY(sampleX + tileSize) - getRiverCenterY(sampleX - tileSize)) < 40;
+  return horizontalBias ? (river.waterHorizontal || river.riverCenter) : (river.waterVertical || river.riverCenter);
+}
+
+function drawBiomeBackground() {
+  const tileSize = 64;
   const left = camera.x - canvas.width / 2;
   const right = camera.x + canvas.width / 2;
   const top = camera.y - canvas.height / 2;
@@ -5237,13 +5268,25 @@ function drawBiomeBackground() {
 
   for (let worldX = startX; worldX <= right; worldX += tileSize) {
     for (let worldY = startY; worldY <= bottom; worldY += tileSize) {
-      ctx.drawImage(
-        image,
-        worldToScreenX(worldX),
-        worldToScreenY(worldY),
-        tileSize,
-        tileSize
-      );
+      const sampleX = worldX + tileSize / 2;
+      const sampleY = worldY + tileSize / 2;
+      const biome = getBiomeAt?.(sampleX, sampleY) || BiomeRegistry?.plains;
+      const sx = worldToScreenX(worldX);
+      const sy = worldToScreenY(worldY);
+
+      if (biome?.id === "river") {
+        const ground = getBiomeGroundImage(biome);
+        drawTileImageOrFallback(ground, biome, sx, sy, tileSize);
+
+        if (typeof isRiverWaterAt === "function" && isRiverWaterAt(sampleX, sampleY)) {
+          const water = getRiverWaterTileImage(worldX, worldY, tileSize);
+          drawTileImageOrFallback(water, biome, sx, sy, tileSize);
+        }
+
+        continue;
+      }
+
+      drawTileImageOrFallback(getBiomeGroundImage(biome), biome, sx, sy, tileSize);
     }
   }
 }
@@ -5852,6 +5895,8 @@ function drawMinimap() {
   ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
   ctx.fillRect(x, y, mapSize, mapSize);
 
+  drawMinimapBiomeBackground(x, y, mapSize, mapRadius, range);
+
   ctx.strokeStyle = "white";
   ctx.lineWidth = 2;
   ctx.strokeRect(x, y, mapSize, mapSize);
@@ -5868,6 +5913,39 @@ function drawMinimap() {
   drawMinimapEntities(activeRifts, centerX, centerY, mapRadius, range, "cyan");
   drawMinimapEntities(senseiStatues, centerX, centerY, mapRadius, range, "white");
   drawMinimapEntities(prisonerCages, centerX, centerY, mapRadius, range, "pink");
+
+  ctx.restore();
+}
+
+function drawMinimapBiomeBackground(x, y, mapSize, mapRadius, range) {
+  if (typeof getBiomeAt !== "function") return;
+
+  const cells = 18;
+  const cellSize = mapSize / cells;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, mapSize, mapSize);
+  ctx.clip();
+
+  for (let row = 0; row < cells; row++) {
+    for (let col = 0; col < cells; col++) {
+      const px = x + col * cellSize + cellSize / 2;
+      const py = y + row * cellSize + cellSize / 2;
+      const nx = (px - (x + mapRadius)) / (mapRadius - 8);
+      const ny = (py - (y + mapRadius)) / (mapRadius - 8);
+      const dist = Math.hypot(nx, ny);
+
+      if (dist > 1) continue;
+
+      const worldX = player.x + nx * range;
+      const worldY = player.y + ny * range;
+      const biome = getBiomeAt(worldX, worldY);
+
+      ctx.fillStyle = biome?.minimapColor || "rgba(110, 170, 67, 0.22)";
+      ctx.fillRect(x + col * cellSize, y + row * cellSize, cellSize + 1, cellSize + 1);
+    }
+  }
 
   ctx.restore();
 }
