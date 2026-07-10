@@ -790,3 +790,72 @@ body {
   text-align: right;
   font-weight: bold;
 }
+
+
+#runItemDebugPanel {
+  z-index: 55;
+}
+
+#runItemDebugPanel > p {
+  margin: -10px 0 24px;
+  font-size: 18px;
+  text-align: center;
+}
+
+#runItemDebugContent {
+  width: min(1000px, 94vw);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.menu-panel #runItemDebugContent .run-item-debug-card {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  text-align: left;
+  border-color: #9b59ff;
+}
+
+.menu-panel #runItemDebugContent .run-item-debug-card:hover:not(:disabled) {
+  background: #29203a;
+  transform: translateY(-2px);
+}
+
+.menu-panel #runItemDebugContent .run-item-debug-card:disabled {
+  opacity: 0.48;
+  cursor: default;
+}
+
+.run-item-debug-card img {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.run-item-debug-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.run-item-debug-info strong {
+  font-size: 20px;
+}
+
+.run-item-debug-info small {
+  font-size: 14px;
+  color: #ddd;
+}
+
+.run-item-debug-info em {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #c7a7ff;
+}

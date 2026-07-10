@@ -31,6 +31,9 @@ const giveUpButton = document.getElementById("giveUpButton");
 const devSavePanel = document.getElementById("devSavePanel");
 const devSaveContent = document.getElementById("devSaveContent");
 const closeDevSaveButton = document.getElementById("closeDevSaveButton");
+const runItemDebugPanel = document.getElementById("runItemDebugPanel");
+const runItemDebugContent = document.getElementById("runItemDebugContent");
+const closeRunItemDebugButton = document.getElementById("closeRunItemDebugButton");
 
 const bestScoreText = document.getElementById("bestScoreText");
 const bestTimeText = document.getElementById("bestTimeText");
@@ -74,6 +77,12 @@ window.addEventListener("keydown", (e) => {
       togglePause();
       return;
     }
+  }
+
+  if (key === "f7") {
+    e.preventDefault();
+    toggleRunItemDebugPanel();
+    return;
   }
 
   if (key === "f8") {
@@ -271,7 +280,16 @@ if (closeDevSaveButton) {
   });
 }
 
+if (closeRunItemDebugButton) {
+  closeRunItemDebugButton.addEventListener("click", closeRunItemDebugPanel);
+}
+
 function closeTopMenuPanel() {
+  if (runItemDebugPanel && !runItemDebugPanel.classList.contains("hidden")) {
+    closeRunItemDebugPanel();
+    return true;
+  }
+
   const panels = [devSavePanel, starterWeaponPanel, skinsPanel, encyclopediaPanel, achievementsPanel];
   for (const panel of panels) {
     if (panel && !panel.classList.contains("hidden")) {
@@ -292,6 +310,71 @@ function toggleDevSavePanel() {
   }
 }
 
+
+
+let runItemDebugWasPaused = false;
+
+function toggleRunItemDebugPanel() {
+  if (!runItemDebugPanel || !gameStarted || gameOver) return;
+
+  if (runItemDebugPanel.classList.contains("hidden")) {
+    runItemDebugWasPaused = gamePaused;
+    gamePaused = true;
+    pausePanel.classList.add("hidden");
+    renderRunItemDebugPanel();
+    runItemDebugPanel.classList.remove("hidden");
+  } else {
+    closeRunItemDebugPanel();
+  }
+}
+
+function closeRunItemDebugPanel() {
+  if (!runItemDebugPanel || runItemDebugPanel.classList.contains("hidden")) return;
+  runItemDebugPanel.classList.add("hidden");
+  gamePaused = runItemDebugWasPaused;
+  if (gamePaused) {
+    renderPauseBuildPanel();
+    pausePanel.classList.remove("hidden");
+  }
+}
+
+function renderRunItemDebugPanel() {
+  if (!runItemDebugContent) return;
+  runItemDebugContent.innerHTML = "";
+
+  const unlockedItems = BLACK_CHEST_WEAPONS.filter(reward =>
+    RUN_ITEM_IDS.has(reward.id) && isBlackChestRewardUnlocked(reward)
+  );
+
+  if (unlockedItems.length === 0) {
+    runItemDebugContent.innerHTML = "<p>No hay items de run desbloqueados todavía.</p>";
+    return;
+  }
+
+  for (const reward of unlockedItems) {
+    const owned = isBlackChestRewardOwned(reward);
+    const card = document.createElement("button");
+    card.className = "run-item-debug-card";
+    card.disabled = owned;
+    card.innerHTML = `
+      <img src="${reward.sprite().src}" alt="${reward.name}">
+      <span class="run-item-debug-info">
+        <strong>${reward.name}</strong>
+        <small>${reward.description}</small>
+        <em>${owned ? "Ya obtenido" : "Clic para añadir a la run"}</em>
+      </span>
+    `;
+
+    card.addEventListener("click", () => {
+      if (isBlackChestRewardOwned(reward)) return;
+      reward.apply();
+      renderRunItemDebugPanel();
+      renderPauseBuildPanel();
+    });
+
+    runItemDebugContent.appendChild(card);
+  }
+}
 
 function devArray(value) {
   return Array.isArray(value) ? value : [];
@@ -4102,53 +4185,53 @@ const BLACK_CHEST_WEAPONS = [
 },
 ];
 
+
+const RUN_ITEM_IDS = new Set([
+  "scaryMedkit",
+  "pokeball",
+  "eviolite",
+  "runningShoes",
+  "drill",
+  "leaderBadge",
+  "laprasFloat",
+  "soap",
+  "slimeJam",
+  "greenPlort",
+  "firePlort",
+  "chicken"
+]);
+
+function isBlackChestRewardUnlocked(reward) {
+  return reward.unlockKey == null || Boolean(saveData.unlocks[reward.unlockKey]);
+}
+
+function isBlackChestRewardOwned(reward) {
+  const runItemFlags = {
+    scaryMedkit: "scaryMedkitActive",
+    pokeball: "pokeballActive",
+    eviolite: "evioliteActive",
+    runningShoes: "runningShoesActive",
+    drill: "drillActive",
+    leaderBadge: "leaderBadgeActive",
+    laprasFloat: "laprasFloatActive",
+    soap: "soapActive",
+    slimeJam: "slimeJamActive",
+    greenPlort: "greenPlortActive",
+    firePlort: "firePlortActive",
+    chicken: "chickenActive"
+  };
+
+  const flag = runItemFlags[reward.id];
+  if (flag) return Boolean(player[flag]);
+  return Boolean(player.weapons[reward.id]);
+}
+
 function getBlackChestRewards(amount = 3) {
   const pool = [];
 
   for (const weapon of BLACK_CHEST_WEAPONS) {
-    const unlocked = weapon.unlockKey == null ? true : saveData.unlocks[weapon.unlockKey];
-
-    let owned = player.weapons[weapon.id];
-
-    if (weapon.id === "scaryMedkit") {
-      owned = player.scaryMedkitActive;
-    }
-    if (weapon.id === "pokeball") {
-      owned = player.pokeballActive;
-    }
-    if (weapon.id === "eviolite") {
-      owned = player.evioliteActive;
-    }
-    if (weapon.id === "runningShoes") {
-      owned = player.runningShoesActive;
-    }
-    if (weapon.id === "drill") {
-      owned = player.drillActive;
-    }
-    if (weapon.id === "leaderBadge") {
-      owned = player.leaderBadgeActive;
-    }
-    if (weapon.id === "laprasFloat") {
-      owned = player.laprasFloatActive;
-    }
-    if (weapon.id === "soap") {
-      owned = player.soapActive;
-    }
-    if (weapon.id === "slimeJam") {
-      owned = player.slimeJamActive;
-    }
-    if (weapon.id === "greenPlort") {
-      owned = player.greenPlortActive;
-    }
-    if (weapon.id === "firePlort") {
-      owned = player.firePlortActive;
-    }
-    if (weapon.id === "chicken") {
-      owned = player.chickenActive;
-    }
-    if (weapon.id === "rooster") {
-      owned = player.roosterActive;
-    }
+    const unlocked = isBlackChestRewardUnlocked(weapon);
+    const owned = isBlackChestRewardOwned(weapon);
 
     if (unlocked && !owned) {
       for (let i = 0; i < 4; i++) {
