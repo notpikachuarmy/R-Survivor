@@ -567,6 +567,7 @@ greenPlort: {
         "60 XP",
         "Velocidad: 90",
         "Ataque: Muro de nube",
+        "Ataque: Lluvia de baba",
         "Tiene un 10% de probabilidad de soltar un cofre al morir.",
         "Puede atravesar obstáculos.",
         "No hace daño por contacto.",
