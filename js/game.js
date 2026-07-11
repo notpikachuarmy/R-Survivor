@@ -4683,7 +4683,14 @@ function explodePanPaloma(pigeon, remaining = pigeon.explosions) {
 }
 
 function updatePanPalomas(dt) {
-  for (const pigeon of panPalomas) {
+  const availableEnemies = enemies.filter(enemy => !enemy.dead && !enemy.isAlly);
+  const claimedTargets = new Set();
+
+  // Procesamos por ranura para que la asignación sea estable: cada Pan Paloma
+  // conserva su objetivo si sigue disponible y ningún pan anterior lo reservó.
+  const orderedPigeons = [...panPalomas].sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0));
+
+  for (const pigeon of orderedPigeons) {
     if (pigeon.secondExplosionTimer != null) {
       pigeon.secondExplosionTimer -= dt;
       if (pigeon.secondExplosionTimer <= 0) {
@@ -4693,9 +4700,25 @@ function updatePanPalomas(dt) {
       }
       continue;
     }
-    if (!pigeon.target || pigeon.target.dead || pigeon.target.isAlly) {
-      pigeon.target = enemies.filter(e => !e.dead && !e.isAlly).sort((a,b) => distance(pigeon,a)-distance(pigeon,b))[0] || null;
+
+    const currentTargetIsValid = pigeon.target
+      && !pigeon.target.dead
+      && !pigeon.target.isAlly
+      && !claimedTargets.has(pigeon.target);
+
+    if (!currentTargetIsValid) {
+      const unclaimedEnemies = availableEnemies.filter(enemy => !claimedTargets.has(enemy));
+      const candidates = unclaimedEnemies.length > 0 ? unclaimedEnemies : availableEnemies;
+      pigeon.target = candidates
+        .slice()
+        .sort((a, b) => distance(pigeon, a) - distance(pigeon, b))[0] || null;
     }
+
+    // Solo se comparte objetivo cuando hay más panes que enemigos disponibles.
+    if (pigeon.target && !claimedTargets.has(pigeon.target)) {
+      claimedTargets.add(pigeon.target);
+    }
+
     if (!pigeon.target) {
       const dx = player.x - pigeon.x, dy = player.y - pigeon.y, d = Math.hypot(dx, dy) || 1;
       if (d > 70) {
