@@ -64,10 +64,10 @@ const EncyclopediaDatabase = {
   sprite: () => Assets.items.cursor,
   description: "Cursores que se mueven hacia enemigos y hacen clic para dañarlos.",
   details: [
+    "Tipo: Independiente",
     "Busca enemigos automáticamente.",
     "Ignora obstáculos y no tiene colisión con el mundo.",
-    "Al llegar al enemigo hace clic y causa daño.",
-    "Después busca otro objetivo.",
+    "Al llegar al enemigo hace clic y causa daño. Después busca otro objetivo.",
     "Si hay varios cursores, intentan repartirse entre distintos enemigos.",
     "Puedes mejorar su daño, velocidad de click, cantidad de cursores y alcance desde el jugador.",
   ]
@@ -85,6 +85,21 @@ const EncyclopediaDatabase = {
     "El Distintivo de Líder mejora su daño.",
     "Puedes mejorar su daño, velocidad, vida, numero de gallos, gallos giganytes y gallos devoraslimes.",
     "El Gallo Devoraslimes hace mucho más daño contra enemigos con tag slime.",
+  ]
+},
+    panPaloma: {
+  id: "panPaloma",
+  name: "Pan Paloma",
+  category: "Arma",
+  sprite: () => Assets.items.panPaloma,
+  description: "Genera panes paloma voladores que persiguen al enemigo más cercano y explotan al alcanzarlo.",
+  details: [
+    "Tipo: Independiente",
+    "Busca al enemigo más cercano automáticamente.",
+    "Ignora obstáculos y no tiene colisión con el mundo.",
+    "Explota al alcanzar a un enemigo con el mismo efecto de PatataBoom.",
+    "Puedes mejorar su daño, cooldown, velocidad de vuelo, cantidad de panes paloma y distancia máxima respecto al jugador.",
+    "Su mejora única permite que cada Pan Paloma explote dos veces.",
   ]
 },
     
