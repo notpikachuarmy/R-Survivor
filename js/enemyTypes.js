@@ -278,6 +278,30 @@ watermelonElectrode: {
   isBoss: false,
   chestChance: 0
 },
+
+  pidove: {
+    id: "pidove",
+    name: "Pidove",
+    type: "normal",
+    tags: ["flying", "bird", "tornado"],
+    sprite: () => Assets.enemies.pidove,
+    size: 48,
+    collision: 18,
+    life: 28,
+    speed: 105,
+    xpValue: 12,
+    scoreValue: 85,
+    attacks: ["tornado"],
+    noContactDamage: true,
+    ignoresObstacles: true,
+    orbitDistance: 310,
+    tornadoCooldown: 3.2,
+    tornadoSpeed: 235,
+    tornadoDamage: 10,
+    tornadoRange: 650,
+    isBoss: false,
+    chestChance: 0
+  },
   delibird: {
   id: "delibird",
   name: "Delibird",
@@ -819,6 +843,10 @@ function createEnemy(typeId, x, y) {
     cloudCooldown: data.cloudCooldown || 0,
     rainCooldown: data.rainCooldown || 0,
     rainDuration: data.rainDuration || 0,
+    tornadoCooldown: data.tornadoCooldown || 0,
+    tornadoSpeed: data.tornadoSpeed || 0,
+    tornadoDamage: data.tornadoDamage || 0,
+    tornadoRange: data.tornadoRange || 0,
     jumpsOverObstacles: data.jumpsOverObstacles || false,
     senseiId: data.senseiId || null,
 
@@ -869,6 +897,10 @@ if (typeId === "watermelonVoltorb") {
 
 if (typeId === "watermelonElectrode") {
   return saveData.unlocks.watermelonElectrode === true;
+}
+
+if (typeId === "pidove") {
+  return saveData.unlocks.pidove === true;
 }
 
 if (typeId === "flabebe") {

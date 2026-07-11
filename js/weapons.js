@@ -16,8 +16,12 @@ function updateWeapons(dt) {
   }
 
   if (player.weapons.sockRock) {
-  updateSockRockWeapon(dt);
-}
+    updateSockRockWeapon(dt);
+  }
+
+  if (player.weapons.panPaloma) {
+    updatePanPalomaWeapon(dt);
+  }
 }
 
 function updateChikoritaLeafWeapon(dt) {
@@ -64,6 +68,15 @@ function updatePatataBoomWeapon(dt) {
   if (player.weapons.patataBoom.timer <= 0) {
     placePatataBoomMines();
     player.weapons.patataBoom.timer = player.weapons.patataBoom.cooldown;
+  }
+}
+
+function updatePanPalomaWeapon(dt) {
+  const weapon = player.weapons.panPaloma;
+  weapon.timer = (weapon.timer ?? 0) - dt;
+  if (weapon.timer <= 0 && panPalomas.length < weapon.maxActive) {
+    spawnPanPaloma();
+    weapon.timer = weapon.cooldown;
   }
 }
 

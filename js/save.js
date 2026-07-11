@@ -34,6 +34,7 @@ const DEFAULT_SAVE = {
     totalPinkSlimeGiantKills: 0,
     totalCloudSlimeKills: 0,
     totalCloudSlimeGiantKills: 0,
+    totalPidoveKills: 0,
     totalChickensSummoned: 0,
     totalEnemiesKilledInRiver: 0,
   },
@@ -89,6 +90,8 @@ const DEFAULT_SAVE = {
     cursor: false,
     rooster: false,
     laprasFloat: false,
+    pidove: false,
+    panPaloma: false,
   }
 };
 

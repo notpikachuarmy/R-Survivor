@@ -523,7 +523,7 @@ greenPlort: {
     flabebe: {
   id: "flabebe",
   name: "Flabébé",
-  category: "Enemigo a distancia",
+  category: "Enemigo",
   sprite: () => Assets.enemies.flabebe,
   description: "Un pequeño flabebe con calle, mantiene la distancia y lanza cuchillos al jugador.",
   details: [
@@ -537,7 +537,7 @@ greenPlort: {
   delibird: {
   id: "delibird",
   name: "Delibird",
-  category: "Enemigo raro",
+  category: "Enemigo",
   sprite: () => Assets.enemies.delibird,
   description: "Enemigo raro y veloz que huye al recibir daño. Puede soltar sacos.",
   details: [
@@ -548,6 +548,22 @@ greenPlort: {
     "Siempre deja un Saco.",
   ]
 },
+
+  pidove: {
+    id: "pidove",
+    name: "Pidove",
+    category: "Enemigo",
+    sprite: () => Assets.enemies.pidove,
+    description: "Ave del bosque que mantiene las distancias y lanza tornados de trayectoria impredecible.",
+    details: [
+      "28 PS",
+      "12 XP",
+      "Velocidad: 105",
+      "Ataque: Tornado errático",
+      "Aparece en bosques a partir del minuto 3.",
+      "Puede atravesar obstáculos."
+    ]
+  },
   fireSlimeGiant: {
       id: "fireSlimeGiant",
       name: "Slime de Fuego Gigante",

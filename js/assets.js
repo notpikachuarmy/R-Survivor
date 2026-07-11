@@ -27,6 +27,7 @@ const Assets = {
     pinkSlimeGiant: new Image(),
     cloudSlime: new Image(),
     cloudSlimeGiant: new Image(),
+    pidove: new Image(),
   },
 
   projectiles: {
@@ -40,6 +41,7 @@ const Assets = {
     blueFireball: new Image(),
     shuriken: new Image(),
     sockSwing: new Image(),
+    tornado: new Image(),
     // Cursor no usa sprite de proyectil: se dibuja siempre con Assets.items.cursor.
   },
 
@@ -79,6 +81,7 @@ const Assets = {
     cursor: new Image(),
     rooster: new Image(),
     laprasFloat: new Image(),
+    panPaloma: new Image(),
   },
 
   obstacles: {
@@ -188,6 +191,7 @@ Assets.enemies.pinkSlime.src = "assets/enemies/pinkSlime.png";
 Assets.enemies.pinkSlimeGiant.src = "assets/enemies/pinkSlimeGiant.png";
 Assets.enemies.cloudSlime.src = "assets/enemies/cloudSlime.png";
 Assets.enemies.cloudSlimeGiant.src = "assets/enemies/cloudSlimeGiant.png";
+Assets.enemies.pidove.src = "assets/enemies/pidove.png";
 
 Assets.projectiles.stone.src = "assets/projectiles/stone.png";
 Assets.projectiles.fireball.src = "assets/projectiles/fireball.png";
@@ -199,6 +203,7 @@ Assets.projectiles.knife.src = "assets/projectiles/knife.png";
 Assets.projectiles.blueFireball.src = "assets/projectiles/blueFireball.png";
 Assets.projectiles.shuriken.src = "assets/projectiles/shuriken.png";
 Assets.projectiles.sockSwing.src = "assets/projectiles/sockSwing.png";
+Assets.projectiles.tornado.src = "assets/projectiles/tornado.png";
 // No cargar assets/projectiles/mouseCursor.png: el cursor usa assets/items/cursor.png para evitar cambios de tamaño/orientación.
 
 Assets.items.chest.src = "assets/items/chest.png";
@@ -236,6 +241,7 @@ Assets.items.chicken.src = "assets/items/chicken.png";
 Assets.items.cursor.src = "assets/items/cursor.png";
 Assets.items.rooster.src = "assets/items/rooster.png";
 Assets.items.laprasFloat.src = "assets/items/FlotadorLapras.png";
+Assets.items.panPaloma.src = "assets/items/panPaloma.png";
 
 Assets.obstacles.rock.src = "assets/obstacles/rock.png";
 Assets.obstacles.tree.src = "assets/obstacles/tree.png";

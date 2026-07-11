@@ -171,6 +171,7 @@ let prisonerCageSpawnTimer = 90;
 let enemyProjectiles = [];
 let allyProjectiles = [];
 let patataBoomMines = [];
+let panPalomas = [];
 let watermelonTurrets = [];
 let chickens = [];
 let roosters = [];
@@ -714,6 +715,7 @@ function setDevStatsToCompletionValues() {
     totalPinkSlimeGiantKills: 100,
     totalCloudSlimeGiantKills: 100,
     totalCloudSlimeKills: 100,
+    totalPidoveKills: 100,
     totalChickensSummoned: 50
   };
   for (const [key, value] of Object.entries(values)) {
@@ -1002,6 +1004,7 @@ function resetPlayerForNewRun() {
   player.runWeaponStats = {};
 
   player.weapons = {};
+  panPalomas = [];
   applyWeaponDefinition("stone");
 }
 
@@ -2048,6 +2051,35 @@ function getEnemyStatMultiplier(enemy, stat) {
   return multiplier;
 }
 
+
+function updatePidove(enemy, dt, target = player) {
+  enemy.tornadoTimer = (enemy.tornadoTimer ?? 0.8 + Math.random() * 1.5) - dt;
+  enemy.orbitAngle = (enemy.orbitAngle ?? Math.atan2(enemy.y - target.y, enemy.x - target.x)) + dt * 0.65;
+  const preferred = enemy.orbitDistance || 310;
+  const desiredX = target.x + Math.cos(enemy.orbitAngle) * preferred;
+  const desiredY = target.y + Math.sin(enemy.orbitAngle) * preferred;
+  const dx = desiredX - enemy.x, dy = desiredY - enemy.y;
+  const dist = Math.hypot(dx, dy) || 1;
+  enemy.x += dx / dist * enemy.speed * dt;
+  enemy.y += dy / dist * enemy.speed * dt;
+  enemy.visualMoving = true;
+  enemy.facing = dx < 0 ? "left" : "right";
+  if (enemy.tornadoTimer <= 0 && distance(enemy, target) <= (enemy.tornadoRange || 650)) {
+    shootPidoveTornado(enemy, target);
+    enemy.tornadoTimer = enemy.tornadoCooldown || 3.2;
+  }
+}
+
+function shootPidoveTornado(enemy, target) {
+  const angle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
+  enemyProjectiles.push({
+    id: "tornado", x: enemy.x, y: enemy.y, size: 60, collision: 22,
+    vx: Math.cos(angle) * enemy.tornadoSpeed, vy: Math.sin(angle) * enemy.tornadoSpeed,
+    baseSpeed: enemy.tornadoSpeed, angle, turnTimer: 0.18, damage: enemy.tornadoDamage,
+    lifeTime: 4.2, ignoresObstacles: true
+  });
+}
+
 function updateCloudSlime(enemy, dt, target) {
   target = target || player;
   enemy.cloudTimer = (enemy.cloudTimer ?? Math.random() * (enemy.cloudCooldown || 4)) - dt;
@@ -2222,6 +2254,11 @@ function updateEnemies(dt) {
   updateGoldSlime(enemy, dt);
   continue;
 }
+
+    if (enemy.id === "pidove") {
+      updatePidove(enemy, dt, player);
+      continue;
+    }
 
     if (enemy.id === "cloudSlime" || enemy.id === "cloudSlimeGiant") {
       updateCloudSlime(enemy, dt, player);
@@ -3062,12 +3099,21 @@ function updateAllyProjectiles(dt) {
 
 function updateEnemyProjectiles(dt) {
   for (const p of enemyProjectiles) {
+    if (p.id === "tornado") {
+      p.turnTimer -= dt;
+      if (p.turnTimer <= 0) {
+        p.angle += (Math.random() - 0.5) * 0.75;
+        p.vx = Math.cos(p.angle) * p.baseSpeed;
+        p.vy = Math.sin(p.angle) * p.baseSpeed;
+        p.turnTimer = 0.12 + Math.random() * 0.22;
+      }
+    }
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     p.lifeTime -= dt;
 
     if (
-  isCollidingWithObstacle(p) ||
+  (!p.ignoresObstacles && isCollidingWithObstacle(p)) ||
   isCollidingWithSenseiPillar(p)
 ) {
   p.lifeTime = 0;
@@ -3616,6 +3662,10 @@ if (enemy.id === "slime") {
 
   if (enemy.id === "cloudSlime") {
     saveData.stats.totalCloudSlimeKills++;
+  }
+
+  if (enemy.id === "pidove") {
+    saveData.stats.totalPidoveKills = (saveData.stats.totalPidoveKills || 0) + 1;
   }
 
   if (enemy.id === "cloudSlimeGiant") {
@@ -4599,6 +4649,64 @@ function addChikoritaLeafWeapon() {
   ensureRunWeaponStats("chikoritaLeaf");
   player.weapons.chikoritaLeaf = cloneRegistryValue(WeaponRegistry.chikoritaLeaf.initialStats);
   unlockEncyclopedia("weapons", "chikoritaLeaf");
+}
+
+
+function addPanPalomaWeapon() {
+  ensureRunWeaponStats("panPaloma");
+  player.weapons.panPaloma = cloneRegistryValue(WeaponRegistry.panPaloma.initialStats);
+  unlockEncyclopedia("weapons", "panPaloma");
+}
+
+function spawnPanPaloma() {
+  const weapon = player.weapons.panPaloma;
+  if (!weapon) return;
+  panPalomas.push({
+    id: "panPaloma", x: player.x, y: player.y, size: 48, collision: 18,
+    speed: weapon.speed, damage: weapon.damage, radius: weapon.explosionRadius,
+    maxDistance: weapon.maxDistance, explosions: weapon.explosions, target: null, dead: false
+  });
+}
+
+function explodePanPaloma(pigeon, remaining = pigeon.explosions) {
+  explosions.push({ x: pigeon.x, y: pigeon.y, size: pigeon.radius * 2, lifeTime: 0.35, sprite: Assets.effects.explosion });
+  for (const enemy of enemies) {
+    if (!enemy.dead && !enemy.isAlly && distance(pigeon, enemy) < pigeon.radius + enemy.collision) {
+      damageEnemy(enemy, pigeon.damage, "panPaloma", ["summon", "flying", "explosive"]);
+    }
+  }
+  if (remaining > 1) {
+    pigeon.secondExplosionTimer = 0.22;
+    pigeon.pendingExplosions = remaining - 1;
+  } else pigeon.dead = true;
+}
+
+function updatePanPalomas(dt) {
+  for (const pigeon of panPalomas) {
+    if (pigeon.secondExplosionTimer != null) {
+      pigeon.secondExplosionTimer -= dt;
+      if (pigeon.secondExplosionTimer <= 0) {
+        const remaining = pigeon.pendingExplosions;
+        pigeon.secondExplosionTimer = null;
+        explodePanPaloma(pigeon, remaining);
+      }
+      continue;
+    }
+    if (!pigeon.target || pigeon.target.dead || pigeon.target.isAlly) {
+      pigeon.target = enemies.filter(e => !e.dead && !e.isAlly).sort((a,b) => distance(pigeon,a)-distance(pigeon,b))[0] || null;
+    }
+    if (!pigeon.target) {
+      const dx = player.x - pigeon.x, dy = player.y - pigeon.y, d = Math.hypot(dx, dy) || 1;
+      if (d > 70) { pigeon.x += dx/d*pigeon.speed*dt; pigeon.y += dy/d*pigeon.speed*dt; }
+      continue;
+    }
+    const dx = pigeon.target.x - pigeon.x, dy = pigeon.target.y - pigeon.y, d = Math.hypot(dx, dy) || 1;
+    pigeon.x += dx/d*pigeon.speed*dt; pigeon.y += dy/d*pigeon.speed*dt;
+    pigeon.facing = dx < 0 ? "left" : "right";
+    if (distance(player, pigeon) > pigeon.maxDistance) { pigeon.x = player.x; pigeon.y = player.y; pigeon.target = null; continue; }
+    if (d < pigeon.collision + pigeon.target.collision) explodePanPaloma(pigeon);
+  }
+  panPalomas = panPalomas.filter(p => !p.dead);
 }
 
 function placePatataBoomMines() {
@@ -5927,7 +6035,9 @@ for (const explosion of explosions) {
 }
 
   for (const p of enemyProjectiles) {
-  if (p.id === "knife") {
+  if (p.id === "tornado") {
+    drawSprite(Assets.projectiles.tornado, p.x, p.y, p.size);
+  } else if (p.id === "knife") {
     drawSprite(Assets.projectiles.knife, p.x, p.y, p.size);
   } else if (p.id === "senseiShuriken") {
     drawSprite(Assets.projectiles.shuriken, p.x, p.y, p.size);
@@ -5967,6 +6077,10 @@ drawRockSpikes();
   for (const bite of electricBites) {
   drawSprite(bite.sprite, bite.x, bite.y, bite.size, "right", bite.lifeTime / 0.35);
 }
+
+  for (const pigeon of panPalomas) {
+    drawSprite(Assets.items.panPaloma, pigeon.x, pigeon.y, pigeon.size, pigeon.facing || "right", 1, { sway: true, amount: 0.6, speed: 180 });
+  }
 
   for (const enemy of enemies) {
   let alpha = 1;
@@ -6293,6 +6407,7 @@ function update(dt) {
   updateMouseClickEffects(dt);
   updateProjectiles(dt);
   updatePatataBoomMines(dt);
+  updatePanPalomas(dt);
   updateWatermelonSeedTurrets(dt);
   updateChickens(dt);
   updateRoosters(dt);

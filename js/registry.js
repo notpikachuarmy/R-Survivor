@@ -139,6 +139,29 @@ const WeaponRegistry = {
     }
   },
 
+  panPaloma: {
+    id: "panPaloma",
+    name: "Pan Paloma",
+    description: "Invoca panes paloma voladores que persiguen al enemigo más cercano y explotan al alcanzarlo.",
+    category: "Arma",
+    sprite: () => Assets.items.panPaloma,
+    unlockKey: "panPaloma",
+    canStart: true,
+    encyclopedia: true,
+    applyFn: "addPanPalomaWeapon",
+    initialStats: {
+      tags: ["summon", "flying", "explosive", "panPaloma"],
+      damage: 14,
+      cooldown: 5.5,
+      timer: 0,
+      maxActive: 1,
+      speed: 245,
+      maxDistance: 620,
+      explosionRadius: 92,
+      explosions: 1
+    }
+  },
+
   rooster: {
     id: "rooster",
     name: "Gallo de Pelea",
@@ -254,7 +277,8 @@ const BiomeRegistry = {
       { id: "slime", weight: 55, minTime: 0 },
       { id: "slimeGiant", weight: 8, minTime: 45 },
       { id: "watermelonVoltorb", weight: 9, minTime: 60 },
-      { id: "watermelonElectrode", weight: 4, minTime: 90 }
+      { id: "watermelonElectrode", weight: 4, minTime: 90 },
+      { id: "pidove", weight: 7, minTime: 180, unlockKey: "pidove" }
     ],
     decorations: ["grass1", "grass2", "flower1", "flowerBlue", "flowerRed", "flowerYellow", "bushSmall"],
     obstacles: ["treeForest1", "treeForest2", "treeForest3", "bush", "rock"],

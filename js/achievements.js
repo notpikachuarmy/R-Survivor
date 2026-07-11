@@ -15,6 +15,29 @@ const AchievementDatabase = {
   }
 },
   
+
+  kill100CloudSlimesForPidove: {
+    id: "kill100CloudSlimesForPidove",
+    name: "Pájaros en las nubes",
+    description: "Derrota a 100 Slimes Nube normales.",
+    reward: "Desbloquea a Pidove.",
+    check() { return saveData.stats.totalCloudSlimeKills >= 100; },
+    unlock() {
+      saveData.unlocks.pidove = true;
+      unlockEncyclopedia("enemies", "pidove");
+    }
+  },
+  kill100Pidoves: {
+    id: "kill100Pidoves",
+    name: "Pan para las palomas",
+    description: "Derrota a 100 Pidoves.",
+    reward: "Desbloquea el arma Pan Paloma.",
+    check() { return saveData.stats.totalPidoveKills >= 100; },
+    unlock() {
+      saveData.unlocks.panPaloma = true;
+      unlockEncyclopedia("weapons", "panPaloma");
+    }
+  },
   kill100Slimes: {
     id: "kill100Slimes",
     name: "Exterminador de Slimes",

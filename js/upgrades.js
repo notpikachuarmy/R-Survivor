@@ -112,6 +112,13 @@ const UPGRADE_POOL = [
       player.weapons.patataBoom.chain = true;
     }
   },
+
+  { id: "panPaloma_damage", weaponId: "panPaloma", itemName: "Pan Paloma", name: "Miga contundente", description: "+5 daño de explosión.", apply() { player.weapons.panPaloma.damage += 5; } },
+  { id: "panPaloma_extra", weaponId: "panPaloma", itemName: "Pan Paloma", name: "Bandada de pan", description: "Permite tener un Pan Paloma adicional en el mapa.", apply() { player.weapons.panPaloma.maxActive += 1; } },
+  { id: "panPaloma_cooldown", weaponId: "panPaloma", itemName: "Pan Paloma", name: "Horno rápido", description: "Reduce el tiempo entre invocaciones.", apply() { player.weapons.panPaloma.cooldown = Math.max(2.2, player.weapons.panPaloma.cooldown - 0.55); } },
+  { id: "panPaloma_speed", weaponId: "panPaloma", itemName: "Pan Paloma", name: "Vuelo veloz", description: "Aumenta la velocidad de vuelo.", apply() { player.weapons.panPaloma.speed += 45; for (const p of panPalomas) p.speed += 45; } },
+  { id: "panPaloma_distance", weaponId: "panPaloma", itemName: "Pan Paloma", name: "Vuelo de largo alcance", description: "Puede separarse más del jugador.", apply() { player.weapons.panPaloma.maxDistance += 120; for (const p of panPalomas) p.maxDistance += 120; } },
+  { id: "panPaloma_double_explosion", weaponId: "panPaloma", itemName: "Pan Paloma", name: "Doble horneado", description: "Cada Pan Paloma explota dos veces.", unique: true, apply() { player.weapons.panPaloma.explosions = 2; for (const p of panPalomas) p.explosions = 2; } },
   {
   id: "pokeball_more_allies",
   weaponId: "pokeball",
