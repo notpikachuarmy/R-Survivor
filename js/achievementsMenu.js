@@ -26,6 +26,12 @@ function getAchievementProgressLines(achievement) {
         case "kill50Slimes":
             return [makeProgressLine("Slimes", stats.totalSlimeKills, 50)];
 
+        case "kill100CloudSlimesForPidove":
+            return [makeProgressLine("Slimes Nube normales", stats.totalCloudSlimeKills, 100)];
+
+        case "kill100Pidoves":
+            return [makeProgressLine("Pidoves", stats.totalPidoveKills, 100)];
+
         case "kill100Slimes":
             return [makeProgressLine("Slimes", stats.totalSlimeKills, 100)];
 

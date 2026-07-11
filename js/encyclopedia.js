@@ -530,8 +530,7 @@ greenPlort: {
     "18 PS",
     "8 XP",
     "Velocidad: 85",
-    "Ataque: Cuchillos.",
-    "Aparece a partir del minuto 3.",
+    "Ataque: Cuchillos."
   ]
 },
   delibird: {
@@ -559,9 +558,7 @@ greenPlort: {
       "28 PS",
       "12 XP",
       "Velocidad: 105",
-      "Ataque: Tornado errático",
-      "Aparece en bosques a partir del minuto 3.",
-      "Puede atravesar obstáculos."
+      "Ataque: Tornado errático"
     ]
   },
   fireSlimeGiant: {
