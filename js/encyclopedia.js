@@ -79,6 +79,7 @@ const EncyclopediaDatabase = {
   sprite: () => Assets.items.rooster,
   description: "Invoca gallos aliados permanentes que picotean enemigos.",
   details: [
+    "Tipo: Independiente",
     "Busca al enemigo más cercano.",
     "Lo persigue y lo picotea.",
     "Si muere, reaparece tras 5 segundos.",
@@ -98,8 +99,7 @@ const EncyclopediaDatabase = {
     "Busca al enemigo más cercano automáticamente.",
     "Ignora obstáculos y no tiene colisión con el mundo.",
     "Explota al alcanzar a un enemigo con el mismo efecto de PatataBoom.",
-    "Puedes mejorar su daño, cooldown, velocidad de vuelo, cantidad de panes paloma y distancia máxima respecto al jugador.",
-    "Su mejora única permite que cada Pan Paloma explote dos veces.",
+    "Puedes mejorar su daño, cooldown, velocidad de vuelo, cantidad de panes paloma, distancia máxima respecto al jugador y que explote dos veces en vez de una.",
   ]
 },
     
