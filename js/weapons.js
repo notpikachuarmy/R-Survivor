@@ -73,10 +73,27 @@ function updatePatataBoomWeapon(dt) {
 
 function updatePanPalomaWeapon(dt) {
   const weapon = player.weapons.panPaloma;
-  weapon.timer = (weapon.timer ?? 0) - dt;
-  if (weapon.timer <= 0 && panPalomas.length < weapon.maxActive) {
-    spawnPanPaloma();
-    weapon.timer = weapon.cooldown;
+
+  // Cada Pan Paloma dispone de su propia ranura y su propio cooldown.
+  // Así, aumentar maxActive permite mantener varios panes funcionando
+  // de forma simultánea en lugar de hacerlos depender de un único timer.
+  if (!Array.isArray(weapon.cooldownSlots)) weapon.cooldownSlots = [];
+
+  while (weapon.cooldownSlots.length < weapon.maxActive) {
+    weapon.cooldownSlots.push(0);
+  }
+  if (weapon.cooldownSlots.length > weapon.maxActive) {
+    weapon.cooldownSlots.length = weapon.maxActive;
+  }
+
+  for (let slot = 0; slot < weapon.maxActive; slot++) {
+    weapon.cooldownSlots[slot] = Math.max(0, (weapon.cooldownSlots[slot] ?? 0) - dt);
+
+    const slotOccupied = panPalomas.some(pigeon => !pigeon.dead && pigeon.slot === slot);
+    if (!slotOccupied && weapon.cooldownSlots[slot] <= 0) {
+      spawnPanPaloma(slot);
+      weapon.cooldownSlots[slot] = weapon.cooldown;
+    }
   }
 }
 

@@ -4658,13 +4658,14 @@ function addPanPalomaWeapon() {
   unlockEncyclopedia("weapons", "panPaloma");
 }
 
-function spawnPanPaloma() {
+function spawnPanPaloma(slot = 0) {
   const weapon = player.weapons.panPaloma;
   if (!weapon) return;
   panPalomas.push({
     id: "panPaloma", x: player.x, y: player.y, size: 48, collision: 18,
     speed: weapon.speed, damage: weapon.damage, radius: weapon.explosionRadius,
-    maxDistance: weapon.maxDistance, explosions: weapon.explosions, target: null, dead: false
+    maxDistance: weapon.maxDistance, explosions: weapon.explosions,
+    slot, target: null, dead: false, facing: "right"
   });
 }
 
@@ -4697,12 +4698,19 @@ function updatePanPalomas(dt) {
     }
     if (!pigeon.target) {
       const dx = player.x - pigeon.x, dy = player.y - pigeon.y, d = Math.hypot(dx, dy) || 1;
-      if (d > 70) { pigeon.x += dx/d*pigeon.speed*dt; pigeon.y += dy/d*pigeon.speed*dt; }
+      if (d > 70) {
+        pigeon.x += dx/d*pigeon.speed*dt;
+        pigeon.y += dy/d*pigeon.speed*dt;
+        // El sprite original mira a la izquierda, por eso la inversión es opuesta
+        // a la utilizada por la mayoría de sprites del juego.
+        pigeon.facing = dx < 0 ? "right" : "left";
+      }
       continue;
     }
     const dx = pigeon.target.x - pigeon.x, dy = pigeon.target.y - pigeon.y, d = Math.hypot(dx, dy) || 1;
     pigeon.x += dx/d*pigeon.speed*dt; pigeon.y += dy/d*pigeon.speed*dt;
-    pigeon.facing = dx < 0 ? "left" : "right";
+    // El sprite base de Pan Paloma mira a la izquierda.
+    pigeon.facing = dx < 0 ? "right" : "left";
     if (distance(player, pigeon) > pigeon.maxDistance) { pigeon.x = player.x; pigeon.y = player.y; pigeon.target = null; continue; }
     if (d < pigeon.collision + pigeon.target.collision) explodePanPaloma(pigeon);
   }
